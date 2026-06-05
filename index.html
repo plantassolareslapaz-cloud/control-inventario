@@ -331,7 +331,7 @@
             const cuerpo = document.getElementById("tablaCuerpo");
             cuerpo.innerHTML = "";
             if(productos.length === 0){
-                cuerpo.innerHTML = `<tr><td colspan="14" style="text-align:center; color:var(--text-muted); padding: 40px 0;">No hay productos. Registra uno nuevo.</td></tr>`;
+                cuerpo.innerHTML = `<tr><td style="text-align:center; color:var(--text-muted); padding: 40px 0;">No hay productos. Registra uno nuevo.</td></tr>`;
                 return;
             }
             productos.forEach(p => {
