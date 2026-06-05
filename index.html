@@ -122,85 +122,74 @@
         /* ==========================================================================
            📱 MODIFICACIONES OPTIMIZADAS PARA DISPOSITIVOS MÓVILES
            ========================================================================== */
-        @media (max-width: 768px) {
-            .table-responsive {
-                overflow-x: visible !important;
-                border: none !important;
-            }
-
-            .table-responsive table, 
-            .table-responsive tbody, 
-            .table-responsive tr, 
-            .table-responsive td {
-                display: block !important;
-                width: 100% !important;
-                box-sizing: border-box !important;
-            }
-
-            .table-responsive thead {
-                display: none !important;
-            }
-
-            /* Cada fila se convierte en una tarjeta estilizada */
-            .table-responsive tr {
-                background: var(--surface) !important;
-                border: 1px solid var(--border) !important;
-                border-radius: var(--radius-lg) !important;
-                padding: 16px !important;
-                margin-bottom: 20px !important;
-                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;
-            }
-
-            /* Forzamos diseño flex para empujar contenidos con el data-label */
-            .table-responsive td {
-                padding: 12px 0 !important;
-                border-bottom: 1px dashed #f1f5f9 !important;
-                display: flex !important;
-                justify-content: flex-end !important;
-                align-items: center !important;
-                font-size: 14px !important;
-                text-align: right !important;
-                min-height: 45px !important;
-                position: relative !important;
-            }
-
-            .table-responsive td:last-child {
-                border-bottom: none !important;
-                padding-top: 14px !important;
-                justify-content: center !important; 
-            }
-
-            /* Inyección de los data-label */
-            .table-responsive td::before {
-                content: attr(data-label) !important;
-                font-weight: 700 !important;
-                color: var(--text-muted) !important;
-                position: absolute !important;
-                left: 0 !important;
-                top: 50% !important;
-                transform: translateY(-50%) !important;
-                text-align: left !important;
-                font-size: 13px !important;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-
-            /* Destacar el Código */
-            .table-responsive td:first-child {
-                border-bottom: 2px solid var(--border) !important;
-                padding-bottom: 12px !important;
-                margin-bottom: 8px !important;
-                font-size: 16px !important;
-                color: var(--primary) !important;
-            }
-
-            .qr-td-container {
-                width: auto !important;
-                display: flex !important;
-                justify-content: flex-end !important;
-                gap: 8px !important;
-            }
-        }
+       @media (max-width: 768px) {
+    .table-responsive {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+    }
+    .table-responsive table, 
+    .table-responsive tbody, 
+    .table-responsive tr, 
+    .table-responsive td {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .table-responsive thead {
+        display: none !important;
+    }
+    .table-responsive tr {
+        background: var(--surface) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: var(--radius-lg) !important;
+        padding: 0 !important;
+        margin-bottom: 20px !important;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;
+        overflow: hidden;
+    }
+    .table-responsive td {
+        padding: 14px 14px 14px 45% !important; /* El 45% deja el hueco a la izquierda para el título */
+        border-bottom: 1px solid var(--border) !important;
+        text-align: right !important; /* Alinea los datos a la derecha */
+        position: relative !important;
+        font-size: 14px !important;
+        min-height: 48px !important;
+        word-wrap: break-word;
+    }
+    .table-responsive td:last-child {
+        border-bottom: none !important;
+    }
+    /* Inyección de los títulos del lado izquierdo */
+    .table-responsive td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 14px;
+        top: 14px;
+        width: 40%;
+        text-align: left;
+        font-weight: 700;
+        color: var(--text-muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    /* Clase especial para cuando la tabla está vacía */
+    .table-responsive td.empty-message {
+        padding: 40px 20px !important;
+        text-align: center !important;
+    }
+    .table-responsive td.empty-message::before {
+        content: none !important;
+        display: none !important;
+    }
+    .qr-td-container {
+        display: flex !important;
+        justify-content: flex-end !important;
+        gap: 8px;
+    }
+}
     </style>
 </head>
 <body>
@@ -331,7 +320,7 @@
             
             if(productos.length === 0){
                 // Arreglado para que no se rompa la vista móvil si está vacío
-                cuerpo.innerHTML = `<tr><td colspan="14" style="text-align:center; color:var(--text-muted); padding: 40px 0;">No hay productos. Registra uno nuevo.</td></tr>`;
+               cuerpo.innerHTML = `<tr><td colspan="14" class="empty-message" style="color:var(--text-muted);">No hay productos. Registra uno nuevo.</td></tr>`;
                 return;
             }
             
