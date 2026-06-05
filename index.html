@@ -123,6 +123,37 @@ table {
             td:first-child { border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 8px; font-size: 16px; }
             .qr-td-container { justify-content: flex-end; }
         }
+        /* Forzar a que la tabla mantenga su forma horizontal en CUALQUIER pantalla */
+@media (max-width: 768px) {
+    /* Evita que las filas y celdas se rompan hacia abajo */
+    .table-responsive table, 
+    .table-responsive thead, 
+    .table-responsive tbody, 
+    .table-responsive th, 
+    .table-responsive td, 
+    .table-responsive tr {
+        display: table !important; /* Devuelve el comportamiento de tabla real */
+        width: auto !important;
+    }
+    
+    .table-responsive tr {
+        display: table-row !important; /* Fuerza a que sea una fila horizontal */
+    }
+    
+    .table-responsive th, 
+    .table-responsive td {
+        display: table-cell !important; /* Fuerza a que sea una celda lateral */
+        white-space: nowrap; /* Evita que el texto de las celdas se amontone feo */
+        padding: 10px 12px !important;
+    }
+    
+    /* Aseguramos que el contenedor sea el único que controle el scroll */
+    .table-responsive {
+        display: block !important;
+        width: 100% !important;
+        overflow-x: auto !important;
+    }
+}
     </style>
 </head>
 <body>
