@@ -125,56 +125,40 @@
       /* --- ESTO VA AL FINAL DE TU CSS --- */
 
 @media (max-width: 768px) {
-    /* 1. Forzamos a la tabla a perder su ancho mínimo */
-    table {
-        min-width: 100% !important;
-    }
-
-    /* 2. Ocultar el scroll del contenedor */
-    .table-responsive {
-        overflow-x: hidden !important;
-        border: none !important;
-    }
-
-    /* 3. Convertir todo a bloques */
-    .table-responsive table, 
-    .table-responsive thead, 
-    .table-responsive tbody, 
-    .table-responsive th, 
-    .table-responsive td, 
+    /* 1. Reducimos el espacio entre tarjetas */
     .table-responsive tr {
-        display: block !important;
-        width: 100% !important;
+        margin-bottom: 12px !important; 
+        padding: 8px !important;
+        border-radius: 8px !important; /* Bordes un poco menos redondeados para ahorrar espacio */
     }
 
-    .table-responsive thead { display: none !important; }
-
-    .table-responsive tr {
-        margin-bottom: 20px !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 12px !important;
-        padding: 10px !important;
-        background: #ffffff !important;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important;
-    }
-
+    /* 2. Reducimos el padding y la fuente de las celdas */
     .table-responsive td {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        border-bottom: 1px solid #f1f5f9 !important;
-        padding: 12px 5px !important;
-        font-size: 14px !important;
+        padding: 6px 4px !important;
+        font-size: 12px !important; /* Letra ligeramente más pequeña */
     }
 
-    .table-responsive td:last-child { border-bottom: none !important; }
-
+    /* 3. Etiquetas (Nombres de columna) más pequeñas */
     .table-responsive td::before {
-        content: attr(data-label);
-        font-weight: 700;
-        color: #64748b;
-        text-transform: uppercase;
-        font-size: 11px;
+        font-size: 9px !important;
+        letter-spacing: 0.5px;
+    }
+
+    /* 4. Ajuste para que los QR y botones no estiren la fila */
+    .qr-mini-img {
+        width: 28px !important;
+        height: 28px !important;
+    }
+    
+    .btn-mini-download {
+        padding: 2px 6px !important;
+        font-size: 11px !important;
+    }
+    
+    /* 5. Asegurar que los badges (stock) no sean enormes */
+    .badge-stock {
+        padding: 2px 6px !important;
+        font-size: 11px !important;
     }
 }
     </style>
