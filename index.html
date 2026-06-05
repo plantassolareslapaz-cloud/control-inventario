@@ -122,13 +122,34 @@
         /* ==========================================================================
            📱 MODIFICACIONES OPTIMIZADAS PARA DISPOSITIVOS MÓVILES
            ========================================================================== */
-      @media (max-width: 768px) {
-    /* 1. Ocultar encabezados de tabla */
-    .table-responsive thead { display: none !important; }
+      /* --- ESTO VA AL FINAL DE TU CSS --- */
 
-    /* 2. Convertir filas en tarjetas */
+@media (max-width: 768px) {
+    /* 1. Forzamos a la tabla a perder su ancho mínimo */
+    table {
+        min-width: 100% !important;
+    }
+
+    /* 2. Ocultar el scroll del contenedor */
+    .table-responsive {
+        overflow-x: hidden !important;
+        border: none !important;
+    }
+
+    /* 3. Convertir todo a bloques */
+    .table-responsive table, 
+    .table-responsive thead, 
+    .table-responsive tbody, 
+    .table-responsive th, 
+    .table-responsive td, 
     .table-responsive tr {
         display: block !important;
+        width: 100% !important;
+    }
+
+    .table-responsive thead { display: none !important; }
+
+    .table-responsive tr {
         margin-bottom: 20px !important;
         border: 1px solid #e2e8f0 !important;
         border-radius: 12px !important;
@@ -137,7 +158,6 @@
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important;
     }
 
-    /* 3. Convertir celdas en líneas de lista */
     .table-responsive td {
         display: flex !important;
         justify-content: space-between !important;
@@ -146,11 +166,9 @@
         padding: 12px 5px !important;
         font-size: 14px !important;
     }
-    
-    /* Quitar borde a la última fila para que se vea limpio */
+
     .table-responsive td:last-child { border-bottom: none !important; }
 
-    /* 4. Inyectar el nombre de la columna (esto es lo que crea el efecto de etiqueta) */
     .table-responsive td::before {
         content: attr(data-label);
         font-weight: 700;
