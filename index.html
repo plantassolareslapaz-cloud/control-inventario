@@ -123,65 +123,40 @@
            📱 MODIFICACIONES OPTIMIZADAS PARA DISPOSITIVOS MÓVILES
            ========================================================================== */
       @media (max-width: 768px) {
-    /* Destruimos el comportamiento nativo de la tabla */
-    .table-responsive table, 
-    .table-responsive tbody, 
-    .table-responsive tr, 
-    .table-responsive td {
-        display: block !important; 
-        width: 100% !important;
-    }
-    
-    .table-responsive thead {
-        display: none !important; /* Escondemos los encabezados de arriba */
-    }
+    /* 1. Ocultar encabezados de tabla */
+    .table-responsive thead { display: none !important; }
 
-    /* Cada fila es una "tarjeta" */
+    /* 2. Convertir filas en tarjetas */
     .table-responsive tr {
-        margin-bottom: 15px !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 8px !important;
-        background: var(--surface) !important;
-        padding: 8px !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+        display: block !important;
+        margin-bottom: 20px !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 10px !important;
+        background: #ffffff !important;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important;
     }
 
-    /* Cada celda usa flex para separar título y valor */
+    /* 3. Convertir celdas en líneas de lista */
     .table-responsive td {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        border-bottom: 1px solid var(--border) !important;
+        border-bottom: 1px solid #f1f5f9 !important;
         padding: 12px 5px !important;
-        text-align: right !important;
         font-size: 14px !important;
-        min-height: 30px;
     }
+    
+    /* Quitar borde a la última fila para que se vea limpio */
+    .table-responsive td:last-child { border-bottom: none !important; }
 
-    .table-responsive td:last-child {
-        border-bottom: none !important;
-    }
-
-    /* El título inyectado del lado izquierdo */
+    /* 4. Inyectar el nombre de la columna (esto es lo que crea el efecto de etiqueta) */
     .table-responsive td::before {
         content: attr(data-label);
         font-weight: 700;
-        color: var(--text-muted);
-        text-align: left;
-        flex-shrink: 0;
-        width: 40%;
-        font-size: 12px;
+        color: #64748b;
         text-transform: uppercase;
-    }
-
-    /* Si la tabla está vacía, que no aplique el flex */
-    .table-responsive td.empty-message {
-        display: block !important;
-        text-align: center !important;
-        padding: 30px 10px !important;
-    }
-    .table-responsive td.empty-message::before {
-        display: none !important;
+        font-size: 11px;
     }
 }
     </style>
