@@ -80,7 +80,6 @@
         .btn-refresh { background: #e2e8f0; color: var(--text-main); padding: 10px 16px; font-size: 14px; }
         .btn-add { background: var(--primary); color: white; padding: 10px 16px; font-size: 14px; }
 
-        /* Contenedor responsivo para Computadora */
         .table-responsive {
             width: 100%;
             overflow-x: auto;
@@ -95,7 +94,7 @@
             border-collapse: collapse; 
             text-align: left; 
             font-size: 14px; 
-            min-width: 1200px; /* Mantiene formato extendido en PC */
+            min-width: 1200px; 
         }
         
         th, td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
@@ -121,7 +120,7 @@
         .qr-result-container img { border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 8px; margin: 15px 0; }
 
         /* ==========================================================================
-           📱 MODIFICACIONES OPTIMIZADAS OPCIÓN 2 PARA DISPOSITIVOS MÓVILES
+           📱 MODIFICACIONES OPTIMIZADAS PARA DISPOSITIVOS MÓVILES
            ========================================================================== */
         @media (max-width: 768px) {
             .table-responsive {
@@ -152,7 +151,7 @@
                 box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;
             }
 
-            /* Forzamos alineación derecha para los contenidos y flexbox para centrar elementos */
+            /* Forzamos diseño flex para empujar contenidos con el data-label */
             .table-responsive td {
                 padding: 12px 0 !important;
                 border-bottom: 1px dashed #f1f5f9 !important;
@@ -168,10 +167,10 @@
             .table-responsive td:last-child {
                 border-bottom: none !important;
                 padding-top: 14px !important;
-                justify-content: center !important; /* Centrar el botón "Editar" al final de la tarjeta */
+                justify-content: center !important; 
             }
 
-            /* Inyección dinámica de las etiquetas legibles */
+            /* Inyección de los data-label */
             .table-responsive td::before {
                 content: attr(data-label) !important;
                 font-weight: 700 !important;
@@ -186,7 +185,7 @@
                 letter-spacing: 0.5px;
             }
 
-            /* El código del producto toma protagonismo en el encabezado de la tarjeta */
+            /* Destacar el Código */
             .table-responsive td:first-child {
                 border-bottom: 2px solid var(--border) !important;
                 padding-bottom: 12px !important;
@@ -195,7 +194,6 @@
                 color: var(--primary) !important;
             }
 
-            /* Ajuste para que los botones y la imagen QR no se rompan ni floten raro */
             .qr-td-container {
                 width: auto !important;
                 display: flex !important;
@@ -330,10 +328,13 @@
             listaProductosGlobal = productos;
             const cuerpo = document.getElementById("tablaCuerpo");
             cuerpo.innerHTML = "";
+            
             if(productos.length === 0){
-                cuerpo.innerHTML = `<tr><td style="text-align:center; color:var(--text-muted); padding: 40px 0;">No hay productos. Registra uno nuevo.</td></tr>`;
+                // Arreglado para que no se rompa la vista móvil si está vacío
+                cuerpo.innerHTML = `<tr><td colspan="14" style="text-align:center; color:var(--text-muted); padding: 40px 0;">No hay productos. Registra uno nuevo.</td></tr>`;
                 return;
             }
+            
             productos.forEach(p => {
                 const miniQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(p.codigo)}`;
 
