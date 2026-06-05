@@ -123,35 +123,87 @@ table {
             td:first-child { border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 8px; font-size: 16px; }
             .qr-td-container { justify-content: flex-end; }
         }
-        /* Forzar a que la tabla mantenga su forma horizontal en CUALQUIER pantalla */
+        /* 📱 Diseño vertical responsivo exclusivo para Celulares */
 @media (max-width: 768px) {
-    /* Evita que las filas y celdas se rompan hacia abajo */
+    /* Desactivamos el scroll horizontal en móviles porque ahora será vertical */
+    .table-responsive {
+        overflow-x: visible !important;
+        border: none !important;
+    }
+
+    /* Forzamos a la tabla a comportarse como bloques apilados */
     .table-responsive table, 
     .table-responsive thead, 
     .table-responsive tbody, 
     .table-responsive th, 
     .table-responsive td, 
     .table-responsive tr {
-        display: table !important; /* Devuelve el comportamiento de tabla real */
-        width: auto !important;
-    }
-    
-    .table-responsive tr {
-        display: table-row !important; /* Fuerza a que sea una fila horizontal */
-    }
-    
-    .table-responsive th, 
-    .table-responsive td {
-        display: table-cell !important; /* Fuerza a que sea una celda lateral */
-        white-space: nowrap; /* Evita que el texto de las celdas se amontone feo */
-        padding: 10px 12px !important;
-    }
-    
-    /* Aseguramos que el contenedor sea el único que controle el scroll */
-    .table-responsive {
         display: block !important;
         width: 100% !important;
-        overflow-x: auto !important;
+    }
+
+    /* Ocultamos el encabezado gris de la tabla vieja porque estorba en celular */
+    .table-responsive thead tr {
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+    }
+
+    /* Cada fila de producto se convierte en una bonita tarjeta blanca separada */
+    .table-responsive tr {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+        margin-bottom: 15px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+    }
+
+    /* Estilo para cada celda de datos dentro de la tarjeta */
+    .table-responsive td {
+        border: none !important;
+        position: relative !important;
+        padding: 8px 10px 8px 45% !important; /* Deja espacio a la izquierda para el título */
+        text-align: left !important;
+        white-space: normal !important;
+        font-size: 14px !important;
+        border-bottom: 1px dashed #f1f5f9 !important; /* Una línea sutil divisoria */
+    }
+
+    /* Quitamos la línea divisoria al último dato para que se vea limpio */
+    .table-responsive td:last-child {
+        border-bottom: none !important;
+    }
+
+    /* 🔥 AQUÍ VIENE LA MAGIA: Inyectamos los títulos dinámicamente a la izquierda */
+    .table-responsive td::before {
+        position: absolute !important;
+        left: 10px !important;
+        width: 40% !important;
+        padding-right: 10px !important;
+        white-space: nowrap !important;
+        font-weight: bold !important;
+        color: #64748b !important; /* Color gris elegante para los títulos */
+    }
+
+    /* Mapeo exacto de tus columnas. Asegúrate de que coincida con el orden de tus <th> */
+    .table-responsive td:nth-of-type(1)::before { content: "Código:"; }
+    .table-responsive td:nth-of-type(2)::before { content: "QR:"; }
+    .table-responsive td:nth-of-type(3)::before { content: "Familia:"; }
+    .table-responsive td:nth-of-type(4)::before { content: "Marca:"; }
+    .table-responsive td:nth-of-type(5)::before { content: "Descripción:"; }
+    .table-responsive td:nth-of-type(6)::before { content: "Estatus:"; }
+    .table-responsive td:nth-of-type(7)::before { content: "Existencia:"; }
+    .table-responsive td:nth-of-type(8)::before { content: "Unidad:"; }
+    .table-responsive td:nth-of-type(9)::before { content: "Ubicación:"; }
+    .table-responsive td:nth-of-type(10)::before { content: "Último Costo:"; }
+    .table-responsive td:nth-of-type(11)::before { content: "Moneda:"; }
+    .table-responsive td:nth-of-type(12)::before { content: "Acciones:"; }
+
+    /* Ajuste especial para que el código QR y botones no queden amontonados */
+    .table-responsive tdimg, 
+    .table-responsive td button {
+        vertical-align: middle !important;
     }
 }
     </style>
