@@ -92,7 +92,28 @@
 
         .qr-result-container { text-align: center; padding: 10px; }
         .qr-result-container img { border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 8px; margin: 15px 0; }
+/* Forzar a que la tarjeta controle el ancho máximo */
+.card {
+    max-width: 100%;
+    overflow: hidden; /* Evita que el fondo blanco se rompa */
+}
 
+/* Contenedor mágico con scroll horizontal si la tabla es muy ancha */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Scroll suave en móviles */
+    margin-top: 15px;
+    border: 1px solid #e2e8f0; /* Un borde sutil para que se vea limpio */
+    border-radius: 8px;
+}
+
+/* Asegurar que la tabla ocupe el ancho del contenedor pero no se achique feo */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px; /* Evita que las columnas se amontonen todas arrugadas */
+}
         @media (max-width: 768px) {
             table, thead, tbody, th, td, tr { display: block; }
             thead { display: none; }
@@ -126,6 +147,7 @@
                 <button class="btn btn-add" onclick="abrirModalRegistro()">➕ Nuevo Producto</button>
             </div>
         </div>
+        <div class="table-responsive">
         <table>
             <thead>
                 <tr>
@@ -134,6 +156,7 @@
             </thead>
             <tbody id="tablaCuerpo"></tbody>
         </table>
+    </div>
     </div>
 </div>
 
@@ -199,7 +222,7 @@
 </div>
 
 <script>
-    const API_URL = "https://control-inventario-a9bc.onrender.com";
+    const API_URL = "https://control-inventario-a9bc.onrender.com"; 
     let modoActual = null;
     let html5QrcodeScanner = null;
     let escaneoBloqueo = false;
