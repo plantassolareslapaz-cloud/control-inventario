@@ -122,72 +122,66 @@
         /* ==========================================================================
            📱 MODIFICACIONES OPTIMIZADAS PARA DISPOSITIVOS MÓVILES
            ========================================================================== */
-       @media (max-width: 768px) {
-    .table-responsive {
-        border: none !important;
-        background: transparent !important;
-        box-shadow: none !important;
-        overflow: visible !important;
-    }
+      @media (max-width: 768px) {
+    /* Destruimos el comportamiento nativo de la tabla */
     .table-responsive table, 
     .table-responsive tbody, 
     .table-responsive tr, 
     .table-responsive td {
-        display: block !important;
+        display: block !important; 
         width: 100% !important;
-        box-sizing: border-box !important;
     }
+    
     .table-responsive thead {
-        display: none !important;
+        display: none !important; /* Escondemos los encabezados de arriba */
     }
+
+    /* Cada fila es una "tarjeta" */
     .table-responsive tr {
-        background: var(--surface) !important;
+        margin-bottom: 15px !important;
         border: 1px solid var(--border) !important;
-        border-radius: var(--radius-lg) !important;
-        padding: 0 !important;
-        margin-bottom: 20px !important;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;
-        overflow: hidden;
+        border-radius: 8px !important;
+        background: var(--surface) !important;
+        padding: 8px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
     }
+
+    /* Cada celda usa flex para separar título y valor */
     .table-responsive td {
-        padding: 14px 14px 14px 45% !important; /* El 45% deja el hueco a la izquierda para el título */
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
         border-bottom: 1px solid var(--border) !important;
-        text-align: right !important; /* Alinea los datos a la derecha */
-        position: relative !important;
+        padding: 12px 5px !important;
+        text-align: right !important;
         font-size: 14px !important;
-        min-height: 48px !important;
-        word-wrap: break-word;
+        min-height: 30px;
     }
+
     .table-responsive td:last-child {
         border-bottom: none !important;
     }
-    /* Inyección de los títulos del lado izquierdo */
+
+    /* El título inyectado del lado izquierdo */
     .table-responsive td::before {
         content: attr(data-label);
-        position: absolute;
-        left: 14px;
-        top: 14px;
-        width: 40%;
-        text-align: left;
         font-weight: 700;
         color: var(--text-muted);
+        text-align: left;
+        flex-shrink: 0;
+        width: 40%;
         font-size: 12px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
-    /* Clase especial para cuando la tabla está vacía */
+
+    /* Si la tabla está vacía, que no aplique el flex */
     .table-responsive td.empty-message {
-        padding: 40px 20px !important;
+        display: block !important;
         text-align: center !important;
+        padding: 30px 10px !important;
     }
     .table-responsive td.empty-message::before {
-        content: none !important;
         display: none !important;
-    }
-    .qr-td-container {
-        display: flex !important;
-        justify-content: flex-end !important;
-        gap: 8px;
     }
 }
     </style>
