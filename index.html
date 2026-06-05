@@ -124,42 +124,53 @@
            ========================================================================== */
       /* --- ESTO VA AL FINAL DE TU CSS --- */
 
+/* --- BLOQUE COMPLETAMENTE SUSTITUIDO --- */
 @media (max-width: 768px) {
-    /* 1. Reducimos el espacio entre tarjetas */
-    .table-responsive tr {
-        margin-bottom: 12px !important; 
-        padding: 8px !important;
-        border-radius: 8px !important; /* Bordes un poco menos redondeados para ahorrar espacio */
+    /* 1. Reset de tabla para diseño vertical */
+    table, thead, tbody, th, td, tr {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important; /* Elimina la restricción de 1200px */
     }
 
-    /* 2. Reducimos el padding y la fuente de las celdas */
-    .table-responsive td {
-        padding: 6px 4px !important;
-        font-size: 12px !important; /* Letra ligeramente más pequeña */
+    /* 2. Ocultar encabezados originales */
+    thead { display: none !important; }
+
+    /* 3. Convertir cada fila en una tarjeta */
+    tr {
+        margin-bottom: 15px !important;
+        padding: 10px !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        background: #ffffff !important;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important;
     }
 
-    /* 3. Etiquetas (Nombres de columna) más pequeñas */
-    .table-responsive td::before {
-        font-size: 9px !important;
-        letter-spacing: 0.5px;
+    /* 4. Estilo de celdas (formato lista) */
+    td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 8px 4px !important;
+        font-size: 13px !important;
+        border-bottom: 1px solid #f1f5f9 !important;
     }
 
-    /* 4. Ajuste para que los QR y botones no estiren la fila */
-    .qr-mini-img {
-        width: 28px !important;
-        height: 28px !important;
+    td:last-child { border-bottom: none !important; }
+
+    /* 5. Inyectar etiquetas (data-label) */
+    td::before {
+        content: attr(data-label);
+        font-weight: 700 !important;
+        color: #64748b !important;
+        text-transform: uppercase !important;
+        font-size: 10px !important;
     }
-    
-    .btn-mini-download {
-        padding: 2px 6px !important;
-        font-size: 11px !important;
-    }
-    
-    /* 5. Asegurar que los badges (stock) no sean enormes */
-    .badge-stock {
-        padding: 2px 6px !important;
-        font-size: 11px !important;
-    }
+
+    /* 6. Ajustes de tamaño para elementos dentro de la celda */
+    .qr-mini-img { width: 28px !important; height: 28px !important; }
+    .btn-mini-download { padding: 2px 6px !important; font-size: 11px !important; }
+    .badge-stock { padding: 2px 6px !important; font-size: 11px !important; }
 }
     </style>
 </head>
