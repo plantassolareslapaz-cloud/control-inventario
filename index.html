@@ -172,6 +172,7 @@
     .btn-mini-download { padding: 2px 6px !important; font-size: 11px !important; }
     .badge-stock { padding: 2px 6px !important; font-size: 11px !important; }
 }
+
     </style>
 </head>
 <body>
@@ -187,7 +188,15 @@
         <div id="reader"></div>
         <div id="resultado" style="display: none;"></div>
     </div>
-
+<div class="search-container" style="margin-bottom: 20px;">
+    <select id="filterField" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc;">
+        <option value="0">Buscar por Código</option>
+        <option value="2">Buscar por Familia</option>
+        <option value="4">Buscar por Descripción</option>
+    </select>
+    
+    <input type="text" id="searchInput" placeholder="Escribe aquí para buscar..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box;">
+</div>
     <div class="table-container">
         <div class="table-header">
             <h3>📋 Base de Datos de Productos</h3>
@@ -558,6 +567,49 @@
     function iniciarEscaner() {
         html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 220 });
         html5QrcodeScanner.render(onScanSuccess);
+    }
+</script>
+<script>
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    let filter = this.value.toLowerCase();
+    let colIndex = document.getElementById('filterField').value;
+    let table = document.querySelector('.table-responsive table'); // Asegúrate de que esta sea tu tabla
+    let tr = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < tr.length; i++) { // Empezamos en 1 para saltar el encabezado
+        let td = tr[i].getElementsByTagName('td')[colIndex];
+        if (td) {
+            let txtValue = td.textContent || td.innerText;
+            if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                tr[i].style.display = ""; // Mostrar
+            } else {
+                tr[i].style.display = "none"; // Ocultar
+            }
+        }
+    }
+});
+</script>
+<div id="quantityModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:20px; border-radius:12px; width:80%; max-width:300px; text-align:center;">
+        <h4 id="modalTitle">Ingresar Cantidad</h4>
+        <input type="number" id="qtyInput" value="1" min="1" style="width:100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:8px;">
+        <button onclick="submitMovement()" style="width:100%; padding:10px; background:#4F46E5; color:white; border:none; border-radius:8px;">Confirmar</button>
+        <button onclick="closeModal()" style="width:100%; padding:10px; background:#ef4444; color:white; border:none; border-radius:8px; margin-top:10px;">Cancelar</button>
+    </div>
+</div>
+<script>
+    // 1. Lógica del buscador
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        // ... (el código del buscador)
+    });
+
+    // 2. Lógica del QR y Modal
+    function onScanSuccess(decodedText) {
+        // ... (código para abrir el modal)
+    }
+
+    function submitMovement() {
+        // ... (código para guardar cantidad y actualizar fecha)
     }
 </script>
 </body>
