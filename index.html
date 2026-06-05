@@ -40,6 +40,8 @@
             margin-bottom: 24px; 
             text-align: center; 
             border: 1px solid var(--border);
+            max-width: 100%;
+            overflow: hidden;
         }
 
         h2 { font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 20px; }
@@ -62,18 +64,43 @@
         #reader { width: 100%; max-width: 340px; margin: 20px auto; border-radius: var(--radius-md); overflow: hidden; border: 2px dashed var(--border) !important; }
         #resultado { margin-top: 15px; padding: 14px; border-radius: var(--radius-md); font-weight: 600; font-size: 14px; white-space: pre-line; }
 
-        .table-container { background: var(--surface); border-radius: var(--radius-lg); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 20px; border: 1px solid var(--border); }
+        .table-container { 
+            background: var(--surface); 
+            border-radius: var(--radius-lg); 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+            padding: 20px; 
+            border: 1px solid var(--border); 
+            max-width: 100%;
+            overflow: hidden;
+        }
+        
         .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 
         .btn-actions-header { display: flex; gap: 8px; }
         .btn-refresh { background: #e2e8f0; color: var(--text-main); padding: 10px 16px; font-size: 14px; }
         .btn-add { background: var(--primary); color: white; padding: 10px 16px; font-size: 14px; }
 
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        /* Contenedor responsivo con scroll para Computadora */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 15px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            text-align: left; 
+            font-size: 14px; 
+            min-width: 1200px; /* Evita que las 14 columnas se aplasten en PC */
+        }
+        
         th, td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
         th { background: #f8fafc; color: var(--text-muted); font-weight: 600; font-size: 13px; text-transform: uppercase; }
         
-        /* Estilos para el mini QR de la tabla */
         .qr-td-container { display: flex; align-items: center; gap: 6px; }
         .qr-mini-img { width: 36px; height: 36px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; transition: transform 0.2s; background: white; }
         .qr-mini-img:hover { transform: scale(1.15); }
@@ -92,120 +119,77 @@
 
         .qr-result-container { text-align: center; padding: 10px; }
         .qr-result-container img { border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 8px; margin: 15px 0; }
-/* Forzar a que la tarjeta controle el ancho máximo */
-.card {
-    max-width: 100%;
-    overflow: hidden; /* Evita que el fondo blanco se rompa */
-}
 
-/* Contenedor mágico con scroll horizontal si la tabla es muy ancha */
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch; /* Scroll suave en móviles */
-    margin-top: 15px;
-    border: 1px solid #e2e8f0; /* Un borde sutil para que se vea limpio */
-    border-radius: 8px;
-}
-
-/* Asegurar que la tabla ocupe el ancho del contenedor pero no se achique feo */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 800px; /* Evita que las columnas se amontonen todas arrugadas */
-}
+        /* ==========================================================================
+           📱 DISEÑO VERTICAL RESPONSIVO EXCLUSIVO PARA CELULARES
+           ========================================================================== */
         @media (max-width: 768px) {
-            table, thead, tbody, th, td, tr { display: block; }
-            thead { display: none; }
-            tr { background: var(--surface); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); }
-            td { padding: 8px 0; border-bottom: 1px dashed #f1f5f9; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
-            td::before { content: attr(data-label); font-weight: 600; color: var(--text-muted); }
-            td:first-child { border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 8px; font-size: 16px; }
-            .qr-td-container { justify-content: flex-end; }
+            .table-responsive {
+                overflow-x: visible !important;
+                border: none !important;
+            }
+
+            .table-responsive table, 
+            .table-responsive tbody, 
+            .table-responsive tr, 
+            .table-responsive td {
+                display: block !important;
+                width: 100% !important;
+                box-sizing: border-box;
+            }
+
+            .table-responsive thead {
+                display: none !important;
+            }
+
+            .table-responsive tr {
+                background: var(--surface) !important;
+                border: 1px solid var(--border) !important;
+                border-radius: var(--radius-lg) !important;
+                padding: 16px !important;
+                margin-bottom: 16px !important;
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;
+            }
+
+            .table-responsive td {
+                padding: 10px 0 !important;
+                border-bottom: 1px dashed #f1f5f9 !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                font-size: 14px !important;
+                text-align: right !important;
+            }
+
+            .table-responsive td:last-child {
+                border-bottom: none !important;
+                padding-top: 12px !important;
+            }
+
+            /* Inyección dinámica de etiquetas a la izquierda */
+            .table-responsive td::before {
+                content: attr(data-label) !important;
+                font-weight: 600 !important;
+                color: var(--text-muted) !important;
+                float: left !important;
+                text-align: left !important;
+                margin-right: 15px !important;
+            }
+
+            /* Resaltado del código del producto */
+            .table-responsive td:first-child {
+                border-bottom: 2px solid var(--border) !important;
+                padding-bottom: 10px !important;
+                margin-bottom: 8px !important;
+                font-size: 16px !important;
+                color: var(--primary) !important;
+            }
+
+            .qr-td-container {
+                width: auto !important;
+                justify-content: flex-end !important;
+            }
         }
-        /* 📱 Diseño vertical responsivo exclusivo para Celulares */
-@media (max-width: 768px) {
-    /* Desactivamos el scroll horizontal en móviles porque ahora será vertical */
-    .table-responsive {
-        overflow-x: visible !important;
-        border: none !important;
-    }
-
-    /* Forzamos a la tabla a comportarse como bloques apilados */
-    .table-responsive table, 
-    .table-responsive thead, 
-    .table-responsive tbody, 
-    .table-responsive th, 
-    .table-responsive td, 
-    .table-responsive tr {
-        display: block !important;
-        width: 100% !important;
-    }
-
-    /* Ocultamos el encabezado gris de la tabla vieja porque estorba en celular */
-    .table-responsive thead tr {
-        position: absolute !important;
-        top: -9999px !important;
-        left: -9999px !important;
-    }
-
-    /* Cada fila de producto se convierte en una bonita tarjeta blanca separada */
-    .table-responsive tr {
-        background: #ffffff !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 10px !important;
-        padding: 12px !important;
-        margin-bottom: 15px !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
-    }
-
-    /* Estilo para cada celda de datos dentro de la tarjeta */
-    .table-responsive td {
-        border: none !important;
-        position: relative !important;
-        padding: 8px 10px 8px 45% !important; /* Deja espacio a la izquierda para el título */
-        text-align: left !important;
-        white-space: normal !important;
-        font-size: 14px !important;
-        border-bottom: 1px dashed #f1f5f9 !important; /* Una línea sutil divisoria */
-    }
-
-    /* Quitamos la línea divisoria al último dato para que se vea limpio */
-    .table-responsive td:last-child {
-        border-bottom: none !important;
-    }
-
-    /* 🔥 AQUÍ VIENE LA MAGIA: Inyectamos los títulos dinámicamente a la izquierda */
-    .table-responsive td::before {
-        position: absolute !important;
-        left: 10px !important;
-        width: 40% !important;
-        padding-right: 10px !important;
-        white-space: nowrap !important;
-        font-weight: bold !important;
-        color: #64748b !important; /* Color gris elegante para los títulos */
-    }
-
-    /* Mapeo exacto de tus columnas. Asegúrate de que coincida con el orden de tus <th> */
-    .table-responsive td:nth-of-type(1)::before { content: "Código:"; }
-    .table-responsive td:nth-of-type(2)::before { content: "QR:"; }
-    .table-responsive td:nth-of-type(3)::before { content: "Familia:"; }
-    .table-responsive td:nth-of-type(4)::before { content: "Marca:"; }
-    .table-responsive td:nth-of-type(5)::before { content: "Descripción:"; }
-    .table-responsive td:nth-of-type(6)::before { content: "Estatus:"; }
-    .table-responsive td:nth-of-type(7)::before { content: "Existencia:"; }
-    .table-responsive td:nth-of-type(8)::before { content: "Unidad:"; }
-    .table-responsive td:nth-of-type(9)::before { content: "Ubicación:"; }
-    .table-responsive td:nth-of-type(10)::before { content: "Último Costo:"; }
-    .table-responsive td:nth-of-type(11)::before { content: "Moneda:"; }
-    .table-responsive td:nth-of-type(12)::before { content: "Acciones:"; }
-
-    /* Ajuste especial para que el código QR y botones no queden amontonados */
-    .table-responsive tdimg, 
-    .table-responsive td button {
-        vertical-align: middle !important;
-    }
-}
     </style>
 </head>
 <body>
@@ -231,15 +215,28 @@ table {
             </div>
         </div>
         <div class="table-responsive">
-        <table>
-            <thead>
-                <tr>
-                    <th>Código</th><th>QR</th><th>Familia</th><th>Marca</th><th>Descripción</th><th>Estatus</th><th>Existencia</th><th>Unidad</th><th>Ubicación</th><th>Último Costo</th><th>Moneda</th><th>P. Mayoreo</th><th>P. Público</th><th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="tablaCuerpo"></tbody>
-        </table>
-    </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>QR</th>
+                        <th>Familia</th>
+                        <th>Marca</th>
+                        <th>Descripción</th>
+                        <th>Estatus</th>
+                        <th>Existencia</th>
+                        <th>Unidad</th>
+                        <th>Ubicación</th>
+                        <th>Último Costo</th>
+                        <th>Moneda</th>
+                        <th>P. Mayoreo</th>
+                        <th>P. Público</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaCuerpo"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -325,7 +322,6 @@ table {
                 return;
             }
             productos.forEach(p => {
-                // Endpoint del QR dinámico para la tabla
                 const miniQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(p.codigo)}`;
 
                 cuerpo.innerHTML += `
@@ -355,7 +351,6 @@ table {
         });
     }
 
-    // Función mágica para forzar la descarga del QR sin problemas de CORS
     function descargarQR(codigo) {
         const url = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(codigo)}`;
         fetch(url)
@@ -367,7 +362,7 @@ table {
             const blobUrl = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = blobUrl;
-            a.download = `QR_${codigo}.png`; // Nombre con el que se guardará el archivo
+            a.download = `QR_${codigo}.png`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -381,7 +376,6 @@ table {
         document.getElementById("qrImagenResultado").src = qrUrl;
         document.getElementById("qrTextoCodigo").innerText = `Código: ${codigo}`;
         
-        // Ajustar textos del modal según procedencia
         const titulo = document.getElementById("qrModalTitulo");
         if(esRegistroNuevo) {
             titulo.innerText = "🎉 ¡Producto Registrado con Éxito!";
@@ -391,7 +385,6 @@ table {
             titulo.style.color = "var(--primary)";
         }
 
-        // Configurar acción del botón de descarga dentro del modal
         document.getElementById("btnDescargarModal").onclick = function() {
             descargarQR(codigo);
         };
@@ -469,8 +462,6 @@ table {
             document.getElementById("regCodigo").value = "";
             document.getElementById("regDescripcion").value = "";
             document.getElementById("registerModal").style.display = "none";
-            
-            // Reutiliza la función levantando la bandera de que es un registro nuevo
             verQrGrande(codigo, true);
             cargarProductos(); 
         })
@@ -493,7 +484,7 @@ table {
             ubicacion: document.getElementById("modUbicacion").value,
             ultimo_costo: parseFloat(document.getElementById("modCosto").value) || 0.0,
             moneda: document.getElementById("modMoneda").value,
-            precio_mayoreo: parseFloat(document.getElementById("regMayoreo").value) || 0.0,
+            precio_mayoreo: parseFloat(document.getElementById("modMayoreo").value) || 0.0,
             precio_publico: parseFloat(document.getElementById("modPublico").value) || 0.0
         };
 
