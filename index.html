@@ -12,26 +12,11 @@
         .btn-group { display: flex; gap: 5px; margin-bottom: 15px; }
         button { padding: 10px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: 600; flex: 1; }
         select, input { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
-        
-        /* Tarjetas de Producto */
         .item-card { background: white; padding: 15px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .row-data { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f9f9f9; font-size: 13px; }
         .label { font-weight: bold; color: #64748b; font-size: 11px; text-transform: uppercase; }
-        
-        /* Contenedor del QR y su botón */
-        .qr-container { display: flex; align-items: center; gap: 8px; }
-        .qr-thumb { width: 50px; height: 50px; border-radius: 4px; border: 1px solid #ddd; cursor: pointer; transition: transform 0.2s; }
-        .qr-thumb:hover { transform: scale(1.05); }
-        
-        /* Modales con Scroll para formularios largos */
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; }
         .modal-content { background:white; padding:20px; border-radius:12px; width:90%; max-width:340px; max-height: 85vh; overflow-y: auto; }
-        .modal-content h4 { margin-top: 0; margin-bottom: 15px; text-align: center; color: #333; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
-        /* Estilo específico para el modal del QR gigante */
-        #qrModal .modal-content { text-align: center; max-width: 300px; }
-        #qrModalImg { width: 100%; max-width: 250px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -47,240 +32,66 @@
 </div>
 
 <div class="card">
-    <input type="text" id="searchInput" placeholder="Buscar por descripción o código...">
-</div>
-
-<div id="contenedorTarjetas"></div>
-
-<div id="nuevoModal" class="modal">
-    <div class="modal-content">
-        <h4>Nuevo Producto</h4>
-        <input type="text" id="newCod" placeholder="Código (Único)*">
-        <input type="text" id="newDesc" placeholder="Descripción*">
-        <div class="grid-2">
-            <input type="text" id="newFamilia" placeholder="Familia">
-            <input type="text" id="newMarca" placeholder="Marca">
-            <input type="text" id="newEstatus" placeholder="Estatus">
-            <input type="number" id="newExistencia" placeholder="Existencia" value="0">
-            <input type="text" id="newUnidad" placeholder="Unidad (Ej. Pza, Kg, Tramo)">
-            <input type="text" id="newUbicacion" placeholder="Ubicación">
-            <input type="text" id="newMoneda" placeholder="Moneda (Ej. MXN)">
-            <input type="number" id="newCosto" placeholder="Último Costo" step="0.01">
-            <input type="number" id="newPMayoreo" placeholder="Precio Mayoreo" step="0.01">
-            <input type="number" id="newPPublico" placeholder="Precio Público" step="0.01">
-        </div>
-        <button onclick="guardarNuevo()" style="background:#6366f1; width:100%; margin-top:10px;">Guardar</button>
-        <button onclick="cerrarModal('nuevoModal')" style="background:#64748b; width:100%; margin-top:5px;">Cancelar</button>
+    <div style="display: flex; gap: 5px;">
+        <select id="searchType" style="width: 120px;">
+            <option value="descripcion">Descripción</option>
+            <option value="codigo">Código</option>
+            <option value="familia">Familia</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="Buscar...">
     </div>
 </div>
 
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <h4>Editar Producto</h4>
-        <input type="hidden" id="editId">
-        <input type="password" id="passInput" placeholder="Contraseña de autorización*">
-        <hr style="border: 0.5px solid #eee; margin-bottom: 15px;">
-        
-        <input type="text" id="editDesc" placeholder="Descripción*">
-        <div class="grid-2">
-            <input type="text" id="editFamilia" placeholder="Familia">
-            <input type="text" id="editMarca" placeholder="Marca">
-            <input type="text" id="editEstatus" placeholder="Estatus">
-            <input type="number" id="editExistencia" placeholder="Existencia">
-            <input type="text" id="editUnidad" placeholder="Unidad">
-            <input type="text" id="editUbicacion" placeholder="Ubicación">
-            <input type="text" id="editMoneda" placeholder="Moneda">
-            <input type="number" id="editCosto" placeholder="Último Costo" step="0.01">
-            <input type="number" id="editPMayoreo" placeholder="Precio Mayoreo" step="0.01">
-            <input type="number" id="editPPublico" placeholder="Precio Público" step="0.01">
-        </div>
-        <button onclick="validarYEditar()" style="background:#f59e0b; width:100%; margin-top:10px;">Actualizar</button>
-        <button onclick="cerrarModal('editModal')" style="background:#64748b; width:100%; margin-top:5px;">Cancelar</button>
-    </div>
-</div>
+<div id="contenedorTarjetas">Cargando productos...</div>
 
-<div id="qtyModal" class="modal">
-    <div class="modal-content">
-        <h4>Cantidad a Mover</h4>
-        <input type="number" id="qtyInput" value="1" min="1">
-        <button onclick="procesarMovimiento()" style="background:#6366f1; width:100%;">Confirmar</button>
-        <button onclick="cerrarModal('qtyModal')" style="background:#64748b; width:100%; margin-top:5px;">Cancelar</button>
-    </div>
-</div>
-
-<div id="qrModal" class="modal" onclick="cerrarModal('qrModal')">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <h4 id="qrModalTitle">Código QR</h4>
-        <img id="qrModalImg" src="" alt="Código QR en Grande">
-        <button onclick="descargarDesdeModal()" style="background:#3b82f6; width:100%; margin-bottom: 8px;">Descargar Imagen</button>
-        <button onclick="cerrarModal('qrModal')" style="background:#64748b; width:100%;">Cerrar</button>
-    </div>
-</div>
+<div id="nuevoModal" class="modal"><div class="modal-content"><h4>Nuevo Producto</h4><input type="text" id="newCod" placeholder="Código (Único)*"><input type="text" id="newDesc" placeholder="Descripción*"><input type="text" id="newFamilia" placeholder="Familia"><input type="number" id="newExistencia" placeholder="Existencia" value="0"><button onclick="guardarNuevo()" style="background:#6366f1; width:100%; margin-top:10px;">Guardar</button><button onclick="cerrarModal('nuevoModal')" style="background:#64748b; width:100%; margin-top:5px;">Cancelar</button></div></div>
 
 <script>
     const API_URL = "https://control-inventario-a9bc.onrender.com";
-    let productosGlobales = [], modoActual = null, codEscaneado = null, scanner = null;
-    let qrActualParaDescarga = '';
+    let productosGlobales = [];
 
-    // Función para mostrar la fecha de forma legible (ej. 8/6/2026, 3:13:44 p.m.)
-    function formatearFecha(fechaStr) {
-        if (!fechaStr) return '-';
-        const d = new Date(fechaStr);
-        return isNaN(d) ? fechaStr : d.toLocaleString('es-MX');
+    async function cargar() {
+        try {
+            console.log("Conectando a:", `${API_URL}/productos`);
+            const res = await fetch(`${API_URL}/productos`);
+            if (!res.ok) throw new Error("Error en servidor");
+            productosGlobales = await res.json();
+            console.log("Productos recibidos:", productosGlobales);
+            renderizar(productosGlobales);
+        } catch (e) {
+            console.error("Error crítico:", e);
+            document.getElementById("contenedorTarjetas").innerHTML = "<p style='color:red;'>Error al conectar. Revisa la consola (F12).</p>";
+        }
     }
 
-    function cargar() {
-        fetch(`${API_URL}/productos`).then(res => res.json()).then(data => {
-            productosGlobales = data;
-            renderizar(data);
-        });
-    }
+    function renderizar(lista) {
+        const contenedor = document.getElementById("contenedorTarjetas");
+        if (!lista || lista.length === 0) {
+            contenedor.innerHTML = "<p style='text-align:center;'>No se encontraron productos.</p>";
+            return;
+        }
 
-    function renderizar(data) {
-        document.getElementById("contenedorTarjetas").innerHTML = data.map(p => `
+        contenedor.innerHTML = lista.map(p => `
             <div class="item-card">
-                <div class="row-data"><span class="label">Código</span><span><strong>${p.codigo}</strong></span></div>
-                
-                <div class="row-data">
-                    <span class="label">Código QR</span>
-                    <div class="qr-container">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${p.codigo}" class="qr-thumb" onclick="abrirQRGrande('${p.codigo}')" title="Toca para ampliar">
-                        <button onclick="descargarQR('${p.codigo}')" style="background:#3b82f6; padding: 6px 12px; font-size: 11px; width: auto; border-radius: 6px;">Descargar</button>
-                    </div>
-                </div>
-
-                <div class="row-data"><span class="label">Descripción</span><span style="text-align: right;">${p.descripcion}</span></div>
-                <div class="row-data"><span class="label">Familia</span><span>${p.familia || '-'}</span></div>
-                <div class="row-data"><span class="label">Marca</span><span>${p.marca || '-'}</span></div>
-                <div class="row-data"><span class="label">Estatus</span><span>${p.estatus || '-'}</span></div>
-                
-                <div class="row-data"><span class="label">Existencia</span><span><strong>${p.existencia}</strong></span></div>
-                <div class="row-data"><span class="label">Unidad</span><span>${p.unidad || '-'}</span></div>
-                
-                <div class="row-data"><span class="label">Ubicación</span><span>${p.ubicacion || '-'}</span></div>
-                <div class="row-data"><span class="label">Último Costo</span><span>${p.ultimo_costo || 0} ${p.moneda || ''}</span></div>
-                <div class="row-data"><span class="label">P. Mayoreo</span><span>${p.precio_mayoreo || 0} ${p.moneda || ''}</span></div>
-                <div class="row-data"><span class="label">P. Público</span><span>${p.precio_publico || 0} ${p.moneda || ''}</span></div>
-                
-                <div class="row-data"><span class="label">Última Act.</span><span>${formatearFecha(p.ultima_actualizacion)}</span></div>
-                
-                <button onclick="prepararEd('${p.codigo}')" style="background:#f59e0b; width:100%; margin-top:10px;">Editar</button>
+                <div class="row-data"><span class="label">Código</span><strong>${p.codigo || ''}</strong></div>
+                <div class="row-data"><span class="label">Descripción</span><span>${p.descripcion || ''}</span></div>
+                <div class="row-data"><span class="label">Familia</span><span>${p.familia || ''}</span></div>
+                <div class="row-data"><span class="label">Existencia</span><strong>${p.existencia || 0}</strong></div>
             </div>`).join('');
     }
 
-    function abrirQRGrande(codigo) {
-        qrActualParaDescarga = codigo;
-        document.getElementById('qrModalTitle').innerText = "QR: " + codigo;
-        document.getElementById('qrModalImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${codigo}`;
-        abrirModal('qrModal');
-    }
-
-    function descargarDesdeModal() { descargarQR(qrActualParaDescarga); }
-
-    function descargarQR(codigo) {
-        const url = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${codigo}`;
-        fetch(url).then(r => r.blob()).then(blob => {
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `QR_${codigo}.png`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        }).catch(() => window.open(url, '_blank'));
-    }
-
-    document.getElementById('searchInput').addEventListener('keyup', function() {
-        const f = this.value.toLowerCase();
-        renderizar(productosGlobales.filter(p => 
-            (p.descripcion && p.descripcion.toLowerCase().includes(f)) || 
-            (p.codigo && p.codigo.toLowerCase().includes(f))
-        ));
+    // Buscador
+    document.getElementById('searchInput').addEventListener('keyup', () => {
+        const texto = document.getElementById('searchInput').value.toLowerCase();
+        const campo = document.getElementById('searchType').value;
+        const filtrados = productosGlobales.filter(p => (p[campo] || '').toString().toLowerCase().includes(texto));
+        renderizar(filtrados);
     });
 
     function abrirModal(id) { document.getElementById(id).style.display = "flex"; }
-    function cerrarModal(id) { document.getElementById(id).style.display = "none"; if(scanner && id !== 'qrModal') scanner.resume(); }
-
-    function cambiarModo(m) { 
-        modoActual = m; 
-        scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 200 }); 
-        scanner.render((t) => { codEscaneado = t; abrirModal('qtyModal'); scanner.pause(); }); 
-    }
-
-    function procesarMovimiento() { 
-        const cant = parseInt(document.getElementById('qtyInput').value);
-        fetch(`${API_URL}/movimiento`, { 
-            method:'POST', 
-            headers:{'Content-Type':'application/json'}, 
-            body: JSON.stringify({ 
-                id: codEscaneado, 
-                cantidad: modoActual === 'entrada' ? cant : -cant 
-            }) 
-        }).then(() => location.reload()).catch(e => alert("Error en movimiento")); 
-    }
-
-    function guardarNuevo() {
-        const datos = {
-            codigo: document.getElementById('newCod').value,
-            descripcion: document.getElementById('newDesc').value,
-            familia: document.getElementById('newFamilia').value,
-            marca: document.getElementById('newMarca').value,
-            estatus: document.getElementById('newEstatus').value,
-            existencia: parseInt(document.getElementById('newExistencia').value || 0),
-            unidad: document.getElementById('newUnidad').value,
-            ubicacion: document.getElementById('newUbicacion').value,
-            moneda: document.getElementById('newMoneda').value,
-            ultimo_costo: parseFloat(document.getElementById('newCosto').value || 0),
-            precio_mayoreo: parseFloat(document.getElementById('newPMayoreo').value || 0),
-            precio_publico: parseFloat(document.getElementById('newPPublico').value || 0)
-        };
-        
-        if(!datos.codigo || !datos.descripcion) { alert("Código y Descripción son obligatorios"); return; }
-
-        fetch(`${API_URL}/productos`, { 
-            method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(datos) 
-        }).then(() => location.reload()).catch(e => alert("Error al guardar"));
-    }
+    function cerrarModal(id) { document.getElementById(id).style.display = "none"; }
     
-    function prepararEd(cod) {
-        const p = productosGlobales.find(prod => prod.codigo === cod);
-        document.getElementById('editId').value = p.codigo;
-        document.getElementById('editDesc').value = p.descripcion || '';
-        document.getElementById('editFamilia').value = p.familia || '';
-        document.getElementById('editMarca').value = p.marca || '';
-        document.getElementById('editEstatus').value = p.estatus || '';
-        document.getElementById('editExistencia').value = p.existencia || 0;
-        document.getElementById('editUnidad').value = p.unidad || '';
-        document.getElementById('editUbicacion').value = p.ubicacion || '';
-        document.getElementById('editMoneda').value = p.moneda || '';
-        document.getElementById('editCosto').value = p.ultimo_costo || 0;
-        document.getElementById('editPMayoreo').value = p.precio_mayoreo || 0;
-        document.getElementById('editPPublico').value = p.precio_publico || 0;
-        document.getElementById('passInput').value = ''; 
-        abrirModal('editModal');
-    }
-
-    function validarYEditar() {
-        if(document.getElementById('passInput').value !== "1234") { 
-            alert("Contraseña incorrecta"); 
-            return; 
-        }
-        const codigo = document.getElementById('editId').value;
-        const datos = {
-            descripcion: document.getElementById('editDesc').value,
-            familia: document.getElementById('editFamilia').value,
-            marca: document.getElementById('editMarca').value,
-            estatus: document.getElementById('editEstatus').value,
-            existencia: parseInt(document.getElementById('editExistencia').value || 0),
-            unidad: document.getElementById('editUnidad').value,
-            ubicacion: document.getElementById('editUbicacion').value,
-            moneda: document.getElementById('editMoneda').value,
-            ultimo_costo: parseFloat(document.getElementById('editCosto').value || 0),
-            precio_mayoreo: parseFloat(document.getElementById('editPMayoreo').value || 0),
-            precio_publico: parseFloat(document.getElementById('editPPublico').value || 0)
-        };
-        fetch(`${API_URL}/productos/${codigo}`, { 
-            method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(datos) 
-        }).then(() => location.reload()).catch(e => alert("Error al actualizar"));
-    }
-
+    // Iniciar
     window.onload = cargar;
 </script>
 </body>
