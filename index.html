@@ -47,7 +47,14 @@
 </div>
 
 <div class="card">
-    <input type="text" id="searchInput" placeholder="Buscar por descripción o código...">
+    <div style="display: flex; gap: 5px;">
+        <select id="searchType" style="width: 120px;">
+            <option value="descripcion">Descripción</option>
+            <option value="codigo">Código</option>
+            <option value="familia">Familia</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="Buscar...">
+    </div>
 </div>
 
 <div id="contenedorTarjetas"></div>
@@ -187,13 +194,21 @@
         }).catch(() => window.open(url, '_blank'));
     }
 
-    document.getElementById('searchInput').addEventListener('keyup', function() {
-        const f = this.value.toLowerCase();
-        renderizar(productosGlobales.filter(p => 
-            (p.descripcion && p.descripcion.toLowerCase().includes(f)) || 
-            (p.codigo && p.codigo.toLowerCase().includes(f))
-        ));
+ document.getElementById('searchInput').addEventListener('keyup', filtrarProductos);
+document.getElementById('searchType').addEventListener('change', filtrarProductos);
+
+function filtrarProductos() {
+    const texto = document.getElementById('searchInput').value.toLowerCase();
+    const campo = document.getElementById('searchType').value; // 'descripcion', 'codigo' o 'familia'
+    
+    const filtrados = productosGlobales.filter(p => {
+        // Obtenemos el valor del campo elegido, usando '' si es nulo
+        const valorCampo = (p[campo] || '').toString().toLowerCase();
+        return valorCampo.includes(texto);
     });
+    
+    renderizar(filtrados);
+}
 
     function abrirModal(id) { document.getElementById(id).style.display = "flex"; }
     function cerrarModal(id) { document.getElementById(id).style.display = "none"; if(scanner && id !== 'qrModal') scanner.resume(); }
