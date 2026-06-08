@@ -44,7 +44,9 @@
 
 <div id="contenedorTarjetas">Cargando productos...</div>
 
-<div id="nuevoModal" class="modal"><div class="modal-content"><h4>Nuevo Producto</h4><input type="text" id="newCod" placeholder="Código (Único)*"><input type="text" id="newDesc" placeholder="Descripción*"><input type="text" id="newFamilia" placeholder="Familia"><input type="number" id="newExistencia" placeholder="Existencia" value="0"><button onclick="guardarNuevo()" style="background:#6366f1; width:100%; margin-top:10px;">Guardar</button><button onclick="cerrarModal('nuevoModal')" style="background:#64748b; width:100%; margin-top:5px;">Cancelar</button></div></div>
+<div id="nuevoModal" class="modal"><div class="modal-content"><h4>Nuevo</h4><input type="text" id="newCod" placeholder="Código*"><input type="text" id="newDesc" placeholder="Descripción*"><input type="number" id="newExistencia" value="0"><button onclick="guardarNuevo()" style="background:#6366f1; width:100%;">Guardar</button><button onclick="cerrarModal('nuevoModal')" style="background:#64748b; width:100%; margin-top:5px;">Cancelar</button></div></div>
+
+<div id="editModal" class="modal"><div class="modal-content"><h4>Editar</h4><input type="hidden" id="editId"><input type="password" id="passInput" placeholder="Contraseña*"><input type="text" id="editDesc" placeholder="Nueva Descripción"><button onclick="validarYEditar()" style="background:#f59e0b; width:100%;">Actualizar</button><button onclick="cerrarModal('editModal')" style="background:#64748b; width:100%; margin-top:5px;">Cancelar</button></div></div>
 
 <script>
     const API_URL = "https://control-inventario-a9bc.onrender.com";
@@ -52,46 +54,58 @@
 
     async function cargar() {
         try {
-            console.log("Conectando a:", `${API_URL}/productos`);
             const res = await fetch(`${API_URL}/productos`);
-            if (!res.ok) throw new Error("Error en servidor");
+            if (!res.ok) throw new Error("Error " + res.status);
             productosGlobales = await res.json();
-            console.log("Productos recibidos:", productosGlobales);
             renderizar(productosGlobales);
         } catch (e) {
-            console.error("Error crítico:", e);
-            document.getElementById("contenedorTarjetas").innerHTML = "<p style='color:red;'>Error al conectar. Revisa la consola (F12).</p>";
+            document.getElementById("contenedorTarjetas").innerHTML = `<p style="color:red; text-align:center;">Error de conexión: ${e.message}. Asegúrate de que el servidor en Render esté encendido.</p>`;
         }
     }
 
     function renderizar(lista) {
-        const contenedor = document.getElementById("contenedorTarjetas");
-        if (!lista || lista.length === 0) {
-            contenedor.innerHTML = "<p style='text-align:center;'>No se encontraron productos.</p>";
-            return;
-        }
-
-        contenedor.innerHTML = lista.map(p => `
+        document.getElementById("contenedorTarjetas").innerHTML = lista.map(p => `
             <div class="item-card">
-                <div class="row-data"><span class="label">Código</span><strong>${p.codigo || ''}</strong></div>
-                <div class="row-data"><span class="label">Descripción</span><span>${p.descripcion || ''}</span></div>
-                <div class="row-data"><span class="label">Familia</span><span>${p.familia || ''}</span></div>
-                <div class="row-data"><span class="label">Existencia</span><strong>${p.existencia || 0}</strong></div>
+                <div class="row-data"><span class="label">Código</span><strong>${p.codigo}</strong></div>
+                <div class="row-data"><span class="label">Descripción</span><span>${p.descripcion}</span></div>
+                <div class="row-data"><span class="label">Existencia</span><strong>${p.existencia}</strong></div>
+                <button onclick="prepararEd('${p.codigo}', '${p.descripcion}')" style="background:#f59e0b; width:100%; margin-top:10px;">Editar</button>
             </div>`).join('');
     }
 
-    // Buscador
-    document.getElementById('searchInput').addEventListener('keyup', () => {
+    function prepararEd(cod, desc) {
+        document.getElementById('editId').value = cod;
+        document.getElementById('editDesc').value = desc;
+        abrirModal('editModal');
+    }
+
+    async function validarYEditar() {
+        const cod = document.getElementById('editId').value;
+        const pass = document.getElementById('passInput').value;
+        const desc = document.getElementById('editDesc').value;
+
+        if (pass !== "admin123") { alert("Contraseña incorrecta"); return; }
+
+        try {
+            const res = await fetch(`${API_URL}/productos/${cod}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: pass, descripcion: desc })
+            });
+            if (res.ok) location.reload();
+            else alert("Error al actualizar");
+        } catch (e) { alert("Error de red"); }
+    }
+
+    function filtrarProductos() {
         const texto = document.getElementById('searchInput').value.toLowerCase();
         const campo = document.getElementById('searchType').value;
-        const filtrados = productosGlobales.filter(p => (p[campo] || '').toString().toLowerCase().includes(texto));
-        renderizar(filtrados);
-    });
+        renderizar(productosGlobales.filter(p => (p[campo] || '').toString().toLowerCase().includes(texto)));
+    }
 
+    document.getElementById('searchInput').addEventListener('keyup', filtrarProductos);
     function abrirModal(id) { document.getElementById(id).style.display = "flex"; }
     function cerrarModal(id) { document.getElementById(id).style.display = "none"; }
-    
-    // Iniciar
     window.onload = cargar;
 </script>
 </body>
