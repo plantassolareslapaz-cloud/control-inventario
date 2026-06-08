@@ -62,7 +62,7 @@
             <input type="text" id="newMarca" placeholder="Marca">
             <input type="text" id="newEstatus" placeholder="Estatus">
             <input type="number" id="newExistencia" placeholder="Existencia" value="0">
-            <input type="text" id="newUnidad" placeholder="Unidad (Ej. Pza, Kg)">
+            <input type="text" id="newUnidad" placeholder="Unidad (Ej. Pza, Kg, Tramo)">
             <input type="text" id="newUbicacion" placeholder="Ubicación">
             <input type="text" id="newMoneda" placeholder="Moneda (Ej. MXN)">
             <input type="number" id="newCosto" placeholder="Último Costo" step="0.01">
@@ -122,6 +122,13 @@
     let productosGlobales = [], modoActual = null, codEscaneado = null, scanner = null;
     let qrActualParaDescarga = '';
 
+    // Función para mostrar la fecha de forma legible (ej. 8/6/2026, 3:13:44 p.m.)
+    function formatearFecha(fechaStr) {
+        if (!fechaStr) return '-';
+        const d = new Date(fechaStr);
+        return isNaN(d) ? fechaStr : d.toLocaleString('es-MX');
+    }
+
     function cargar() {
         fetch(`${API_URL}/productos`).then(res => res.json()).then(data => {
             productosGlobales = data;
@@ -154,11 +161,13 @@
                 <div class="row-data"><span class="label">Último Costo</span><span>${p.ultimo_costo || 0} ${p.moneda || ''}</span></div>
                 <div class="row-data"><span class="label">P. Mayoreo</span><span>${p.precio_mayoreo || 0} ${p.moneda || ''}</span></div>
                 <div class="row-data"><span class="label">P. Público</span><span>${p.precio_publico || 0} ${p.moneda || ''}</span></div>
+                
+                <div class="row-data"><span class="label">Última Act.</span><span>${formatearFecha(p.ultima_actualizacion)}</span></div>
+                
                 <button onclick="prepararEd('${p.codigo}')" style="background:#f59e0b; width:100%; margin-top:10px;">Editar</button>
             </div>`).join('');
     }
 
-    // Funciones para el Visor de QR en grande
     function abrirQRGrande(codigo) {
         qrActualParaDescarga = codigo;
         document.getElementById('qrModalTitle').innerText = "QR: " + codigo;
@@ -166,25 +175,16 @@
         abrirModal('qrModal');
     }
 
-    function descargarDesdeModal() {
-        descargarQR(qrActualParaDescarga);
-    }
+    function descargarDesdeModal() { descargarQR(qrActualParaDescarga); }
 
     function descargarQR(codigo) {
         const url = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${codigo}`;
-        fetch(url)
-            .then(respuesta => respuesta.blob())
-            .then(blob => {
-                const enlace = document.createElement('a');
-                enlace.href = URL.createObjectURL(blob);
-                enlace.download = `QR_${codigo}.png`;
-                document.body.appendChild(enlace);
-                enlace.click();
-                document.body.removeChild(enlace);
-            })
-            .catch(() => {
-                window.open(url, '_blank');
-            });
+        fetch(url).then(r => r.blob()).then(blob => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `QR_${codigo}.png`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }).catch(() => window.open(url, '_blank'));
     }
 
     document.getElementById('searchInput').addEventListener('keyup', function() {
