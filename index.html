@@ -6,44 +6,46 @@
     <title>Inventario Pro QR</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        :root { --primary: #6366f1; --bg: #f8fafc; --border: #e2e8f0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); padding: 15px; margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        #reader { width: 100%; max-width: 320px; margin: 10px auto; border-radius: 8px; }
+        :root { --primary: #6366f1; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
         
-        /* Tabla Estética */
+        /* Contenedores de botones */
+        .btn-container { display:flex; gap:10px; margin-bottom:15px; }
+        button { flex:1; padding:12px; border:none; border-radius:10px; font-weight:600; cursor:pointer; }
+        
+        /* Tabla adaptativa */
         .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th { background: #f1f5f9; padding: 12px; text-align: left; font-size: 13px; color: #475569; }
-        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
-
-        /* Estilo para Móvil (Tarjetas) */
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; }
+        th { background: #f1f5f9; padding: 14px; text-align: left; font-size: 13px; text-transform: uppercase; }
+        td { padding: 14px; border-bottom: 1px solid #f1f5f9; }
+        
+        /* Estilo móvil: Tarjetas */
         @media (max-width: 768px) {
             table, thead, tbody, th, td, tr { display: block; }
             thead { display: none; }
-            tr { background: white; margin-bottom: 15px; border-radius: 12px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            td { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 8px 0; }
-            td::before { content: attr(data-label); font-weight: bold; color: #64748b; font-size: 12px; }
+            tr { background: white; margin-bottom: 15px; border-radius: 12px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+            td { display: flex; justify-content: space-between; padding: 6px 0; border: none; }
+            td::before { content: attr(data-label); font-weight: bold; color: #64748b; font-size: 11px; }
         }
 
-        /* Modal */
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; }
-        .modal-content { background:white; padding:25px; border-radius:16px; width:85%; max-width:300px; text-align:center; }
+        .modal-content { background:white; padding:25px; border-radius:16px; width:80%; max-width:300px; text-align:center; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h2>Control de Inventario</h2>
-    <div style="display:flex; gap:10px;">
-        <button onclick="cambiarModo('entrada')" style="flex:1; padding:12px; background:#10b981; color:white; border:none; border-radius:8px;">Entrada (+)</button>
-        <button onclick="cambiarModo('salida')" style="flex:1; padding:12px; background:#ef4444; color:white; border:none; border-radius:8px;">Salida (-)</button>
+    <div class="btn-container">
+        <button onclick="cambiarModo('entrada')" style="background:#10b981; color:white;">Entrada (+)</button>
+        <button onclick="cambiarModo('salida')" style="background:#ef4444; color:white;">Salida (-)</button>
     </div>
     <div id="reader"></div>
 </div>
 
 <div class="card">
-    <select id="filterField" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px;">
+    <select id="filterField" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc;">
         <option value="0">Buscar por Código</option>
         <option value="2">Buscar por Familia</option>
         <option value="4">Buscar por Descripción</option>
@@ -54,7 +56,7 @@
 <div class="table-container">
     <table id="tablaProductos">
         <thead>
-            <tr><th>Código</th><th>QR</th><th>Familia</th><th>Marca</th><th>Descripción</th><th>Existencia</th></tr>
+            <tr><th>Código</th><th>QR</th><th>Familia</th><th>Descripción</th><th>Existencia</th><th>Última Act.</th></tr>
         </thead>
         <tbody id="tablaCuerpo"></tbody>
     </table>
@@ -64,16 +66,14 @@
     <div class="modal-content">
         <h4>Cantidad</h4>
         <input type="number" id="qtyInput" value="1" min="1" style="width:100%; padding:10px; margin:10px 0; border-radius:8px; border:1px solid #ccc;">
-        <button onclick="procesarMovimiento()" style="width:100%; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px;">Confirmar</button>
-        <button onclick="cerrarModales()" style="width:100%; padding:10px; background:#64748b; color:white; border:none; border-radius:8px; margin-top:10px;">Cancelar</button>
+        <button onclick="procesarMovimiento()" style="width:100%; background:var(--primary); color:white;">Confirmar</button>
+        <button onclick="cerrarModales()" style="width:100%; margin-top:10px; background:#64748b; color:white;">Cancelar</button>
     </div>
 </div>
 
 <script>
     const API_URL = "https://control-inventario-a9bc.onrender.com";
-    let modoActual = null;
-    let codigoEscaneado = null;
-    let html5QrcodeScanner = null;
+    let modoActual = null, codigoEscaneado = null, html5QrcodeScanner = null;
 
     function cargarProductos() {
         fetch(`${API_URL}/productos`)
@@ -82,13 +82,14 @@
             const cuerpo = document.getElementById("tablaCuerpo");
             cuerpo.innerHTML = "";
             productos.forEach(p => {
+                const fecha = p.ultima_actualizacion ? new Date(p.ultima_actualizacion).toLocaleString() : 'N/A';
                 cuerpo.innerHTML += `<tr>
                     <td data-label="Código">${p.codigo}</td>
-                    <td data-label="QR"><img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${p.codigo}" style="width:40px; border-radius:4px;"></td>
+                    <td data-label="QR"><img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${p.codigo}" style="width:35px; border-radius:4px;"></td>
                     <td data-label="Familia">${p.familia || '-'}</td>
-                    <td data-label="Marca">${p.marca || '-'}</td>
                     <td data-label="Descripción">${p.descripcion}</td>
                     <td data-label="Existencia">${p.existencia}</td>
+                    <td data-label="Última Act.">${fecha}</td>
                 </tr>`;
             });
         });
@@ -104,37 +105,21 @@
         });
     }
 
-    function cambiarModo(modo) {
-        modoActual = modo;
-        iniciarEscaner();
-    }
+    function cambiarModo(modo) { modoActual = modo; iniciarEscaner(); }
 
     function procesarMovimiento() {
         const qty = parseInt(document.getElementById("qtyInput").value);
-        const cantidadFinal = modoActual === 'entrada' ? qty : -qty;
-
         fetch(`${API_URL}/movimiento`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                id: codigoEscaneado, 
-                cantidad: cantidadFinal,
-                ultima_actualizacion: new Date().toISOString() 
-            })
-        })
-        .then(() => {
-            alert("Operación completada");
-            cargarProductos();
-            cerrarModales();
-        });
+            body: JSON.stringify({ id: codigoEscaneado, cantidad: modoActual === 'entrada' ? qty : -qty, ultima_actualizacion: new Date().toISOString() })
+        }).then(() => { alert("Actualizado"); cargarProductos(); cerrarModales(); });
     }
 
     document.getElementById('searchInput').addEventListener('keyup', function() {
         let filter = this.value.toLowerCase();
-        let colIndex = document.getElementById('filterField').value;
         document.querySelectorAll('#tablaCuerpo tr').forEach(row => {
-            let td = row.getElementsByTagName('td')[colIndex];
-            row.style.display = (td && td.innerText.toLowerCase().includes(filter)) ? "" : "none";
+            row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
         });
     });
 
@@ -146,4 +131,4 @@
     window.onload = cargarProductos;
 </script>
 </body>
-</html>
+</html> 
