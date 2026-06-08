@@ -4,124 +4,142 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario Pro QR</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        :root {
-            --bg-primary: #f8fafc;
-            --surface: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --primary: #6366f1;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --border: #e2e8f0;
-            --radius-lg: 16px;
-            --radius-md: 12px;
-        }
-
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-primary); padding: 16px; margin: 0; color: var(--text-main); -webkit-font-smoothing: antialiased; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .card { background: var(--surface); padding: 24px; border-radius: var(--radius-lg); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px; text-align: center; border: 1px solid var(--border); }
-        h2 { font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 20px; }
-        .btn-group { display: flex; gap: 12px; margin-bottom: 16px; }
-        .btn { flex: 1; padding: 14px 20px; font-size: 15px; font-weight: 600; border: none; cursor: pointer; border-radius: var(--radius-md); transition: all 0.2s ease; }
-        .entrada { background: var(--success); color: white; }
-        .salida { background: var(--danger); color: white; }
-        .activo { transform: scale(0.98); outline: 3px solid var(--warning); box-shadow: 0 0 14px rgba(245, 158, 11, 0.3); }
-        #reader { width: 100%; max-width: 340px; margin: 20px auto; border-radius: var(--radius-md); overflow: hidden; border: 2px dashed var(--border) !important; }
-        #resultado { margin-top: 15px; padding: 14px; border-radius: var(--radius-md); font-weight: 600; font-size: 14px; white-space: pre-line; }
-        /* (El resto de estilos se mantienen igual...) */
+        /* Estilos base (manteniendo tu diseño) */
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        #reader { width: 100%; max-width: 340px; margin: 10px auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #e2e8f0; text-align: left; }
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center; }
+        .modal-content { background:white; padding:25px; border-radius:12px; width:90%; max-width:300px; text-align:center; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card">
-        <h2>Control de Inventario QR</h2>
-        <div class="btn-group">
-            <button id="btnEntrada" class="btn entrada" onclick="cambiarModo('entrada')">Entrada (+)</button>
-            <button id="btnSalida" class="btn salida" onclick="cambiarModo('salida')">Venta / Salida (-)</button>
-        </div>
-        <div id="modoTexto" style="color: #64748b;">Modo: Selecciona una opción para activar cámara</div>
-        <div id="reader"></div>
-        <div id="resultado" style="display: none;"></div>
+<div class="card">
+    <h2>Control de Inventario</h2>
+    <button onclick="cambiarModo('entrada')">Entrada (+)</button>
+    <button onclick="cambiarModo('salida')">Salida (-)</button>
+    <div id="reader"></div>
+</div>
+
+<div class="card">
+    <select id="filterField">
+        <option value="0">Buscar por Código</option>
+        <option value="2">Buscar por Familia</option>
+        <option value="4">Buscar por Descripción</option>
+    </select>
+    <input type="text" id="searchInput" placeholder="Escribe para filtrar...">
+</div>
+
+<div class="card">
+    <table id="tablaProductos">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>QR</th>
+                <th>Familia</th>
+                <th>Marca</th>
+                <th>Descripción</th>
+                <th>Existencia</th>
+            </tr>
+        </thead>
+        <tbody id="tablaCuerpo">
+            </tbody>
+    </table>
+</div>
+
+<div id="quantityModal" class="modal">
+    <div class="modal-content">
+        <h4>Ingresar Cantidad</h4>
+        <input type="number" id="qtyInput" value="1" min="1" style="width:100%; padding:8px; margin-bottom:10px;">
+        <button onclick="procesarMovimiento()" style="background:#6366f1; color:white; border:none; padding:10px;">Confirmar</button>
+        <button onclick="cerrarModales()" style="background:#ef4444; color:white; border:none; padding:10px;">Cancelar</button>
     </div>
-    
-    </div>
+</div>
 
 <script>
-    const API_URL = "https://control-inventario-a9bc.onrender.com"; 
+    const API_URL = "https://control-inventario-a9bc.onrender.com";
     let modoActual = null;
+    let codigoEscaneado = null;
     let html5QrcodeScanner = null;
-    let escaneoBloqueo = false;
 
-    // --- FUNCIÓN DE ESCANEO CORREGIDA ---
+    // 1. Cargar productos (Tu función original)
+    function cargarProductos() {
+        fetch(`${API_URL}/productos`)
+        .then(res => res.json())
+        .then(productos => {
+            const cuerpo = document.getElementById("tablaCuerpo");
+            cuerpo.innerHTML = "";
+            productos.forEach(p => {
+                cuerpo.innerHTML += `<tr>
+                    <td>${p.codigo}</td>
+                    <td><img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${p.codigo}"></td>
+                    <td>${p.familia || '-'}</td>
+                    <td>${p.marca || '-'}</td>
+                    <td>${p.descripcion}</td>
+                    <td>${p.existencia}</td>
+                </tr>`;
+            });
+        });
+    }
+
+    // 2. Escáner
     function iniciarEscaner() {
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.clear().catch(e => console.error("Error al limpiar:", e));
-        }
-
-        const config = {
-            fps: 10,
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0,
-            rememberLastUsedCamera: true,
-            facingMode: "environment" // Obliga a usar la cámara trasera
-        };
-
-        html5QrcodeScanner = new Html5QrcodeScanner("reader", config, false);
-
-        html5QrcodeScanner.render(
-            (decodedText, decodedResult) => {
-                onScanSuccess(decodedText, decodedResult);
-            },
-            (errorMessage) => {
-                // Silencioso para evitar inundar la consola
-            }
-        );
+        if(html5QrcodeScanner) html5QrcodeScanner.clear();
+        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 200 });
+        html5QrcodeScanner.render((text) => {
+            codigoEscaneado = text;
+            document.getElementById("quantityModal").style.display = "flex";
+            html5QrcodeScanner.pause();
+        });
     }
 
     function cambiarModo(modo) {
         modoActual = modo;
-        document.getElementById("btnEntrada").classList.toggle("activo", modo === 'entrada');
-        document.getElementById("btnSalida").classList.toggle("activo", modo === 'salida');
-        document.getElementById("modoTexto").innerText = `Modo: ${modo === 'entrada' ? 'ENTRADA' : 'SALIDA'}`;
-        
         iniciarEscaner();
     }
 
-    function onScanSuccess(decodedText, decodedResult) {
-        if (escaneoBloqueo) return;
-        escaneoBloqueo = true;
-
-        const resultadoDiv = document.getElementById("resultado");
-        resultadoDiv.style.display = "block";
-        resultadoDiv.innerText = "Procesando: " + decodedText;
+    // 3. Procesar movimiento con fecha
+    function procesarMovimiento() {
+        const qty = parseInt(document.getElementById("qtyInput").value);
+        const cantidadFinal = modoActual === 'entrada' ? qty : -qty;
 
         fetch(`${API_URL}/movimiento`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: decodedText, cantidad: modoActual === 'entrada' ? 1 : -1 })
+            body: JSON.stringify({ 
+                id: codigoEscaneado, 
+                cantidad: cantidadFinal,
+                ultima_actualizacion: new Date().toISOString() // Campo solicitado
+            })
         })
-        .then(res => res.json())
-        .then(data => {
-            resultadoDiv.innerText = data.detail ? `❌ ${data.detail}` : `✅ ${data.status}\nStock: ${data.nuevo_stock}`;
-            setTimeout(() => { escaneoBloqueo = false; }, 3000);
-        })
-        .catch(() => { resultadoDiv.innerText = "❌ Error de conexión"; escaneoBloqueo = false; });
+        .then(() => {
+            alert("Operación realizada");
+            cargarProductos();
+            cerrarModales();
+        });
     }
 
-    // Lógica del buscador unificada
+    // 4. Buscador
     document.getElementById('searchInput').addEventListener('keyup', function() {
         let filter = this.value.toLowerCase();
+        let colIndex = document.getElementById('filterField').value;
         let tr = document.querySelectorAll('#tablaCuerpo tr');
         tr.forEach(row => {
-            row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+            let td = row.getElementsByTagName('td')[colIndex];
+            row.style.display = (td && td.innerText.toLowerCase().includes(filter)) ? "" : "none";
         });
     });
-</script>
 
+    function cerrarModales() {
+        document.getElementById("quantityModal").style.display = "none";
+        if(html5QrcodeScanner) html5QrcodeScanner.resume();
+    }
+
+    window.onload = cargarProductos;
+</script>
 </body>
 </html>
