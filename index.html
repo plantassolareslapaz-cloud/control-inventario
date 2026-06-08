@@ -12,23 +12,18 @@
         .btn-group { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
         button { padding: 10px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: 600; flex: 1; }
         
-        /* Estilos Tabla */
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th { background: #f1f5f9; padding: 12px; text-align: left; font-size: 12px; }
-        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+        /* Buscador */
+        select, input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
 
-        @media (max-width: 768px) {
-            table, thead, tbody, th, td, tr { display: block; }
-            thead { display: none; }
-            tr { background: white; border: 1px solid #eee; margin-bottom: 15px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-            td { display: flex; justify-content: space-between; padding: 6px 0; border: none; }
-            td::before { content: attr(data-label); font-weight: bold; color: #64748b; font-size: 11px; }
-        }
+        /* Tabla Estilo Tarjetas (Sin Scroll Horizontal) */
+        table { width: 100%; border-collapse: collapse; }
+        thead { display: none; } /* Oculto en móviles para dar lugar a las tarjetas */
+        tr { display: block; background: white; border: 1px solid #eee; margin-bottom: 15px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        td { display: flex; justify-content: space-between; padding: 6px 0; border: none; font-size: 14px; }
+        td::before { content: attr(data-label); font-weight: bold; color: #64748b; font-size: 11px; }
 
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; }
         .modal-content { background:white; padding:20px; border-radius:12px; width:90%; max-width:320px; }
-        input { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -43,14 +38,16 @@
     <div id="reader"></div>
 </div>
 
-<div class="card table-container">
-    <table>
-        <thead>
-            <tr><th>Código</th><th>QR</th><th>Familia</th><th>Marca</th><th>Descripción</th><th>Existencia</th><th>Última Act.</th><th>Acción</th></tr>
-        </thead>
-        <tbody id="tablaCuerpo"></tbody>
-    </table>
+<div class="card">
+    <select id="filterField">
+        <option value="0">Buscar por Código</option>
+        <option value="2">Buscar por Familia</option>
+        <option value="4">Buscar por Descripción</option>
+    </select>
+    <input type="text" id="searchInput" placeholder="Escribe para filtrar...">
 </div>
+
+<div id="tablaCuerpo"></div>
 
 <div id="qtyModal" class="modal"><div class="modal-content"><h4>Cantidad</h4><input type="number" id="qtyInput" value="1"><button onclick="procesarMovimiento()" style="background:#6366f1; width:100%;">Confirmar</button></div></div>
 <div id="nuevoModal" class="modal"><div class="modal-content"><h4>Nuevo</h4><input type="text" id="newCod" placeholder="Código"><input type="text" id="newDesc" placeholder="Descripción"><button onclick="guardarNuevo()" style="background:#6366f1; width:100%;">Guardar</button></div></div>
@@ -58,11 +55,18 @@
 
 <script>
     const API_URL = "https://control-inventario-a9bc.onrender.com";
-    let modoActual = null, codEscaneado = null, scanner = null;
+    let modoActual = null, codEscaneado = null, scanner = null, productosGlobales = [];
 
     function cargar() {
         fetch(`${API_URL}/productos`).then(res => res.json()).then(data => {
-            document.getElementById("tablaCuerpo").innerHTML = data.map(p => `<tr>
+            productosGlobales = data;
+            renderizar(data);
+        });
+    }
+
+    function renderizar(data) {
+        document.getElementById("tablaCuerpo").innerHTML = data.map(p => `
+            <tr data-codigo="${p.codigo}" data-familia="${p.familia}" data-desc="${p.descripcion}">
                 <td data-label="Código">${p.codigo}</td>
                 <td data-label="QR"><img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${p.codigo}" style="width:30px;"></td>
                 <td data-label="Familia">${p.familia || '-'}</td>
@@ -70,40 +74,27 @@
                 <td data-label="Descripción">${p.descripcion}</td>
                 <td data-label="Existencia">${p.existencia}</td>
                 <td data-label="Última Act.">${p.ultima_actualizacion ? new Date(p.ultima_actualizacion).toLocaleString() : 'N/A'}</td>
-                <td data-label="Acción"><button onclick="prepararEd('${p.codigo}')" style="background:#f59e0b; padding:5px 10px;">Editar</button></td>
+                <td data-label="Acción"><button onclick="prepararEd('${p.codigo}')" style="background:#f59e0b; width:100%;">Editar</button></td>
             </tr>`).join('');
-        });
     }
+
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const filter = this.value.toLowerCase();
+        const col = document.getElementById('filterField').value;
+        const filtrados = productosGlobales.filter(p => {
+            if(col == 0) return p.codigo.toLowerCase().includes(filter);
+            if(col == 2) return (p.familia||'').toLowerCase().includes(filter);
+            return (p.descripcion||'').toLowerCase().includes(filter);
+        });
+        renderizar(filtrados);
+    });
 
     function abrirModal(id) { document.getElementById(id).style.display = "flex"; }
-    function cerrar() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); if(scanner) scanner.resume(); }
-
-    function cambiarModo(m) {
-        modoActual = m;
-        scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 200 });
-        scanner.render((t) => { codEscaneado = t; abrirModal('qtyModal'); scanner.pause(); });
-    }
-
-    function procesarMovimiento() {
-        const cant = parseInt(document.getElementById('qtyInput').value);
-        fetch(`${API_URL}/movimiento`, { method:'POST', headers:{'Content-Type':'application/json'}, 
-            body: JSON.stringify({ id: codEscaneado, cantidad: modoActual === 'entrada' ? cant : -cant, ultima_actualizacion: new Date().toISOString() })
-        }).then(() => { alert('Éxito'); location.reload(); });
-    }
-
-    function guardarNuevo() {
-        const p = { codigo: document.getElementById('newCod').value, descripcion: document.getElementById('newDesc').value };
-        fetch(`${API_URL}/productos`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(p) }).then(() => location.reload());
-    }
-
+    function cambiarModo(m) { modoActual = m; scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 200 }); scanner.render((t) => { codEscaneado = t; abrirModal('qtyModal'); scanner.pause(); }); }
+    function procesarMovimiento() { const cant = parseInt(document.getElementById('qtyInput').value); fetch(`${API_URL}/movimiento`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: codEscaneado, cantidad: modoActual === 'entrada' ? cant : -cant, ultima_actualizacion: new Date().toISOString() }) }).then(() => location.reload()); }
+    function guardarNuevo() { const p = { codigo: document.getElementById('newCod').value, descripcion: document.getElementById('newDesc').value }; fetch(`${API_URL}/productos`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(p) }).then(() => location.reload()); }
     function prepararEd(cod) { document.getElementById('editId').value = cod; abrirModal('editModal'); }
-
-    function validarYEditar() {
-        if(document.getElementById('passInput').value !== "1234") { alert("Contraseña incorrecta"); return; }
-        fetch(`${API_URL}/productos/${document.getElementById('editId').value}`, { method:'PUT', headers:{'Content-Type':'application/json'}, 
-            body: JSON.stringify({descripcion: document.getElementById('editDesc').value}) }).then(() => location.reload());
-    }
-
+    function validarYEditar() { if(document.getElementById('passInput').value !== "1234") { alert("Contraseña incorrecta"); return; } fetch(`${API_URL}/productos/${document.getElementById('editId').value}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({descripcion: document.getElementById('editDesc').value}) }).then(() => location.reload()); }
     window.onload = cargar;
 </script>
 </body>
