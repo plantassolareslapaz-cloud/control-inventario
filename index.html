@@ -11,15 +11,24 @@
         .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .btn-group { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
         button { padding: 10px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: 600; flex: 1; }
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; }
-        .modal-content { background:white; padding:20px; border-radius:12px; width:90%; max-width:300px; }
-        input { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        
+        /* Estilos Tabla */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: #f1f5f9; padding: 12px; text-align: left; font-size: 12px; }
+        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+
         @media (max-width: 768px) {
+            table, thead, tbody, th, td, tr { display: block; }
             thead { display: none; }
-            tr { display: block; border: 1px solid #eee; margin-bottom: 10px; padding: 10px; border-radius: 8px; }
-            td { display: flex; justify-content: space-between; padding: 5px; }
-            td::before { content: attr(data-label); font-weight: bold; }
+            tr { background: white; border: 1px solid #eee; margin-bottom: 15px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+            td { display: flex; justify-content: space-between; padding: 6px 0; border: none; }
+            td::before { content: attr(data-label); font-weight: bold; color: #64748b; font-size: 11px; }
         }
+
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; }
+        .modal-content { background:white; padding:20px; border-radius:12px; width:90%; max-width:320px; }
+        input { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -34,39 +43,18 @@
     <div id="reader"></div>
 </div>
 
-<div class="card">
-    <table style="width:100%">
-        <thead><tr><th>Código</th><th>Desc.</th><th>Acción</th></tr></thead>
+<div class="card table-container">
+    <table>
+        <thead>
+            <tr><th>Código</th><th>QR</th><th>Familia</th><th>Marca</th><th>Descripción</th><th>Existencia</th><th>Última Act.</th><th>Acción</th></tr>
+        </thead>
         <tbody id="tablaCuerpo"></tbody>
     </table>
 </div>
 
-<div id="qtyModal" class="modal">
-    <div class="modal-content">
-        <h4>Cantidad</h4>
-        <input type="number" id="qtyInput" value="1">
-        <button onclick="procesarMovimiento()" style="background:#6366f1; width:100%;">Confirmar</button>
-    </div>
-</div>
-
-<div id="nuevoModal" class="modal">
-    <div class="modal-content">
-        <h4>Nuevo Producto</h4>
-        <input type="text" id="newCod" placeholder="Código">
-        <input type="text" id="newDesc" placeholder="Descripción">
-        <button onclick="guardarNuevo()" style="background:#6366f1; width:100%;">Guardar</button>
-    </div>
-</div>
-
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <h4>Editar Producto</h4>
-        <input type="hidden" id="editId">
-        <input type="password" id="passInput" placeholder="Contraseña">
-        <input type="text" id="editDesc" placeholder="Nueva Descripción">
-        <button onclick="validarYEditar()" style="background:#f59e0b; width:100%;">Actualizar</button>
-    </div>
-</div>
+<div id="qtyModal" class="modal"><div class="modal-content"><h4>Cantidad</h4><input type="number" id="qtyInput" value="1"><button onclick="procesarMovimiento()" style="background:#6366f1; width:100%;">Confirmar</button></div></div>
+<div id="nuevoModal" class="modal"><div class="modal-content"><h4>Nuevo</h4><input type="text" id="newCod" placeholder="Código"><input type="text" id="newDesc" placeholder="Descripción"><button onclick="guardarNuevo()" style="background:#6366f1; width:100%;">Guardar</button></div></div>
+<div id="editModal" class="modal"><div class="modal-content"><h4>Editar</h4><input type="hidden" id="editId"><input type="password" id="passInput" placeholder="Contraseña"><input type="text" id="editDesc" placeholder="Nueva Descripción"><button onclick="validarYEditar()" style="background:#f59e0b; width:100%;">Actualizar</button></div></div>
 
 <script>
     const API_URL = "https://control-inventario-a9bc.onrender.com";
@@ -76,8 +64,13 @@
         fetch(`${API_URL}/productos`).then(res => res.json()).then(data => {
             document.getElementById("tablaCuerpo").innerHTML = data.map(p => `<tr>
                 <td data-label="Código">${p.codigo}</td>
-                <td data-label="Desc.">${p.descripcion}</td>
-                <td><button onclick="prepararEd('${p.codigo}')" style="background:#f59e0b; padding:5px 10px;">Editar</button></td>
+                <td data-label="QR"><img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${p.codigo}" style="width:30px;"></td>
+                <td data-label="Familia">${p.familia || '-'}</td>
+                <td data-label="Marca">${p.marca || '-'}</td>
+                <td data-label="Descripción">${p.descripcion}</td>
+                <td data-label="Existencia">${p.existencia}</td>
+                <td data-label="Última Act.">${p.ultima_actualizacion ? new Date(p.ultima_actualizacion).toLocaleString() : 'N/A'}</td>
+                <td data-label="Acción"><button onclick="prepararEd('${p.codigo}')" style="background:#f59e0b; padding:5px 10px;">Editar</button></td>
             </tr>`).join('');
         });
     }
