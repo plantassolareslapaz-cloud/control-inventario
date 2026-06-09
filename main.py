@@ -134,10 +134,38 @@ def listar_productos():
             return list(cursor.fetchall())
 
 @app.put("/productos/{codigo}")
-def editar_producto(codigo: str, datos: UpdateProducto):
-    if datos.password != ADMIN_PASSWORD:
+def editar_producto(codigo: str, datos: dict): # 👈 Cambiamos "UpdateProducto" por "dict" para aceptar todo sin que truene
+    # 1. Validar contraseña de administrador
+    if datos.get("password") != ADMIN_PASSWORD:
         raise HTTPException(status_code=401, detail="Contraseña incorrecta.")
         
+    # 2. Función interna para limpiar números (si viene "" o "-", lo convierte en 0 de forma segura)
+    def limpiar_numero(valor, defecto=0.0):
+        if valor is None or str(valor).strip() in ("", "-", "null", "undefined"):
+            return defecto
+        try:
+            return float(valor)
+        except:
+            return defecto
+
+    # 3. Extraer y limpiar cada campo de forma segura (si no viene, usa un valor por defecto)
+    familia = str(datos.get("familia") or "").strip()
+    marca = str(datos.get("marca") or "").strip()
+    descripcion = str(datos.get("descripcion") or "").strip()
+    estatus = str(datos.get("estatus") or "").strip()
+    existencia = int(limpiar_numero(datos.get("existencia"), 0))
+    unidad = str(datos.get("unidad") or "").strip()
+    ubicacion = str(datos.get("ubicacion") or "").strip()
+    ultimo_costo = limpiar_numero(datos.get("ultimo_costo"), 0.0)
+    moneda = str(datos.get("moneda") or "").strip()
+    precio_mayoreo = limpiar_numero(datos.get("precio_mayoreo"), 0.0)
+    precio_publico = limpiar_numero(datos.get("precio_publico"), 0.0)
+
+    # 4. Validar que al menos la descripción no esté vacía
+    if not descripcion:
+        raise HTTPException(status_code=400, detail="La descripción es obligatoria")
+
+    # 5. Guardar en la base de datos Neon
     with psycopg2.connect(DB_URL) as conn:
         with conn.cursor() as cursor:
             cursor.execute("""
@@ -146,9 +174,9 @@ def editar_producto(codigo: str, datos: UpdateProducto):
                     unidad = %s, ubicacion = %s, ultimo_costo = %s, moneda = %s, precio_mayoreo = %s, 
                     precio_publico = %s, ultima_actualizacion = NOW()
                 WHERE codigo = %s
-            """, (datos.familia, datos.marca, datos.descripcion, datos.estatus, datos.existencia,
-                  datos.unidad, datos.ubicacion, datos.ultimo_costo, datos.moneda, datos.precio_mayoreo, 
-                  datos.precio_publico, codigo))
+            """, (familia, marca, descripcion, estatus, existencia,
+                  unidad, ubicacion, ultimo_costo, moneda, precio_mayoreo, 
+                  precio_publico, codigo))
             conn.commit()
             
             if cursor.rowcount == 0:
