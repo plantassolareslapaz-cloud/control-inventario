@@ -169,7 +169,10 @@
                 
                 <div class="row-data"><span class="label">Última Act.</span><span>${formatearFecha(p.ultima_actualizacion)}</span></div>
                 
-                <button onclick="prepararEd('${p.codigo}')" style="background:#f59e0b; width:100%; margin-top:10px;">Editar</button>
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <button onclick="prepararEd('${p.codigo}')" style="background:#f59e0b; width: 100%;">Editar</button>
+                    <button onclick="borrarProducto('${p.codigo}')" style="background:#ef4444; width: 100%;">Eliminar</button>
+                </div>
             </div>`).join('');
     }
 
@@ -287,7 +290,32 @@
         }).then(() => location.reload()).catch(e => alert("Error al actualizar"));
     }
 
+    // NUEVA FUNCIÓN: Eliminar Producto
+    async function borrarProducto(codigo) {
+        const confirmacion = confirm(`⚠️ ¿Estás seguro de que deseas eliminar permanentemente el código ${codigo}?`);
+        
+        if (confirmacion) {
+            try {
+                const response = await fetch(`${API_URL}/productos/${codigo}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert("Producto eliminado exitosamente.");
+                    location.reload(); // Recarga la página para actualizar la lista
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.detail}`);
+                }
+            } catch (error) {
+                console.error("Hubo un error de conexión:", error);
+                alert("No se pudo conectar con el servidor.");
+            }
+        }
+    }
+
     window.onload = cargar;
+    
 </script>
 </body>
 </html>
