@@ -134,7 +134,7 @@ def listar_productos():
             return list(cursor.fetchall())
 
 @app.put("/productos/{codigo}")
-def editar_producto(codigo: str, datos: dict): # 👈 Cambiamos "UpdateProducto" por "dict" para aceptar todo sin que truene
+def editar_producto(codigo: str, datos: dict = {}): # 👈 Le agregamos "= {}" para volverlo inmune a bodies vacíos
     # 1. Validar contraseña de administrador
     if datos.get("password") != ADMIN_PASSWORD:
         raise HTTPException(status_code=401, detail="Contraseña incorrecta.")
