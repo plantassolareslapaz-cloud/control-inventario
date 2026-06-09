@@ -63,20 +63,19 @@ class Producto(BaseModel):
 class Movimiento(BaseModel):
     id: str
     cantidad: int
-
 class UpdateProducto(BaseModel):
     password: str
-    familia: str
-    marca: str
+    familia: Optional[str] = ""
+    marca: Optional[str] = ""
     descripcion: str
-    estatus: str
-    existencia: int
-    unidad: str
-    ubicacion: str
-    ultimo_costo: float
-    moneda: str
-    precio_mayoreo: float
-    precio_publico: float
+    estatus: Optional[str] = ""
+    existencia: Optional[int] = 0          # 👈 Protegido si se manda vacío
+    unidad: Optional[str] = ""
+    ubicacion: Optional[str] = ""
+    ultimo_costo: Optional[float] = 0.0    # 👈 Protegido si se manda vacío
+    moneda: Optional[str] = ""
+    precio_mayoreo: Optional[float] = 0.0  # 👈 Protegido si se manda vacío
+    precio_publico: Optional[float] = 0.0  # 👈 Protegido si se manda vacío
 
 @app.post("/productos")  #  ¡Listo! Ahora sí coincide con tu frontend
 def crear_producto(producto: Producto):
