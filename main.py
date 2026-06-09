@@ -136,7 +136,7 @@ def listar_productos():
 @app.put("/productos/{codigo}")
 def editar_producto(codigo: str, datos: dict = {}): # 👈 Le agregamos "= {}" para volverlo inmune a bodies vacíos
     # 1. Validar contraseña de administrador
-    if datos.get("password") != ADMIN_PASSWORD:
+    if datos.get("admin123") != ADMIN_PASSWORD:
         raise HTTPException(status_code=401, detail="Contraseña incorrecta.")
         
     # 2. Función interna para limpiar números (si viene "" o "-", lo convierte en 0 de forma segura)
