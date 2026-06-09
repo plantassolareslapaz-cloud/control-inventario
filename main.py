@@ -23,6 +23,7 @@ ADMIN_PASSWORD = "admin123"
 def init_db():
     with psycopg2.connect(DB_URL) as conn:
         with conn.cursor() as cursor:
+            # 1. Creamos la tabla usando TIMESTAMP WITH TIME ZONE (por si la corres desde cero en otro lado)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS productos (
                     codigo TEXT PRIMARY KEY,
@@ -37,9 +38,19 @@ def init_db():
                     moneda TEXT,
                     precio_mayoreo REAL DEFAULT 0.0,
                     precio_publico REAL DEFAULT 0.0,
-                    ultima_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    ultima_actualizacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                 )
             """)
+            
+            # 2. Forzamos la actualización de la columna existente para tu base de datos actual
+            try:
+                cursor.execute("""
+                    ALTER TABLE productos 
+                    ALTER COLUMN ultima_actualizacion TYPE TIMESTAMP WITH TIME ZONE;
+                """)
+            except Exception as e:
+                print("La columna ya estaba actualizada o hubo un detalle:", e)
+                
             conn.commit()
 
 init_db()
