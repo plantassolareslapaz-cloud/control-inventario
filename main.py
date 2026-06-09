@@ -193,3 +193,24 @@ def editar_producto(codigo: str, datos: dict = {}): # 👈 Le agregamos "= {}" p
                 raise HTTPException(status_code=404, detail="Producto no encontrado")
                 
     return {"status": "Producto actualizado correctamente"}
+@app.delete("/productos/{codigo}")
+def eliminar_producto(codigo: str):
+    # Opcional: Si mantuviste la seguridad por contraseña, tendrías que pedirla aquí también.
+    # Por ahora lo dejaremos directo para que funcione a la primera.
+    
+    with psycopg2.connect(DB_URL) as conn:
+        with conn.cursor() as cursor:
+            # Ejecutamos el comando DELETE de SQL
+            cursor.execute("DELETE FROM productos WHERE codigo = %s", (codigo,))
+            conn.commit()
+            
+            # Si rowcount es 0, significa que no existía ningún producto con ese código
+            if cursor.rowcount == 0:
+                raise HTTPException(status_code=404, detail="Producto no encontrado")
+                
+    # Opcional: Eliminar también el código QR generado para ahorrar espacio
+    ruta_qr = f"qrs/{codigo}.png"
+    if os.path.exists(ruta_qr):
+        os.remove(ruta_qr)
+                
+    return {"status": f"Producto {codigo} eliminado correctamente"}
