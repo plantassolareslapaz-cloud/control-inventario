@@ -6,6 +6,9 @@ import qrcode
 import os
 from pydantic import BaseModel
 from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -17,8 +20,11 @@ app.add_middleware(
 )
 
 # 🔗 ¡PEGA AQUÍ TU URL DE NEON CON LA CONTRASEÑA REAL QUE REVELASTE EN EL OJITO!
-DB_URL = "postgresql://neondb_owner:npg_Bwky2iTD0unQ@ep-tiny-cell-aqg3ulus.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require"
-ADMIN_PASSWORD = "admin123"
+DB_URL = os.getenv("DATABASE_URL")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
+
+if not DB_URL:
+    raise ValueError("⚠️ Falta la variable DATABASE_URL en el entorno local")
 
 def init_db():
     with psycopg2.connect(DB_URL) as conn:
