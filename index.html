@@ -305,9 +305,9 @@
           ${row('Estatus', p.estatus || '-')}
           ${row('Existencia', `${existencia} ${p.unidad || ''}`, true)}
           ${row('Ubicación', p.ubicacion || '-')}
-          ${row('Último costo', formatMoney(p.ultimo_costo, p.moneda))}
-          ${row('P. mayoreo', formatMoney(p.precio_mayoreo, p.moneda))}
-          ${row('P. público', formatMoney(p.precio_publico, p.moneda))}
+${row('Último costo (IVA incluido)', formatMoney(p.ultimo_costo, p.moneda))}
+${row('Precio mayoreo (IVA incluido)', formatMoney(p.precio_mayoreo, p.moneda))}
+${row('Precio público (IVA incluido)', formatMoney(p.precio_publico, p.moneda))}
           ${row('Última act.', formatearFecha(p.ultima_actualizacion))}
         </div>
 
