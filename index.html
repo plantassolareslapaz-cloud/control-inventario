@@ -1,321 +1,500 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario Pro QR</title>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <style>
-        :root { --primary: #6366f1; --bg: #f8fafc; }
-        body { font-family: sans-serif; background: var(--bg); padding: 10px; margin: 0; }
-        .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .btn-group { display: flex; gap: 5px; margin-bottom: 15px; }
-        button { padding: 10px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: 600; flex: 1; }
-        select, input { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
-        
-        /* Tarjetas de Producto */
-        .item-card { background: white; padding: 15px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .row-data { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f9f9f9; font-size: 13px; }
-        .label { font-weight: bold; color: #64748b; font-size: 11px; text-transform: uppercase; }
-        
-        /* Contenedor del QR y su botón */
-        .qr-container { display: flex; align-items: center; gap: 8px; }
-        .qr-thumb { width: 50px; height: 50px; border-radius: 4px; border: 1px solid #ddd; cursor: pointer; transition: transform 0.2s; }
-        .qr-thumb:hover { transform: scale(1.05); }
-        
-        /* Modales con Scroll para formularios largos */
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; }
-        .modal-content { background:white; padding:20px; border-radius:12px; width:90%; max-width:340px; max-height: 85vh; overflow-y: auto; }
-        .modal-content h4 { margin-top: 0; margin-bottom: 15px; text-align: center; color: #333; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
-        /* Estilo específico para el modal del QR gigante */
-        #qrModal .modal-content { text-align: center; max-width: 300px; }
-        #qrModalImg { width: 100%; max-width: 250px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #eee; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventario</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(17,24,39,.55); z-index:1000; align-items:center; justify-content:center; padding:16px; }
+  .modal-overlay.open { display:flex; }
+  .spinner { border: 3px solid #e5e7eb; border-top-color:#1d4ed8; border-radius:9999px; width:20px; height:20px; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { *{ animation:none !important; transition:none !important; } }
+</style>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
 
-<div class="card">
-    <h2>Control de Inventario</h2>
-    <div class="btn-group">
-        <button onclick="cambiarModo('entrada')" style="background:#10b981;">Entrada (+)</button>
-        <button onclick="cambiarModo('salida')" style="background:#ef4444;">Salida (-)</button>
-        <button onclick="abrirModal('nuevoModal')" style="background:#6366f1;">+ Nuevo</button>
+<!-- Navbar: solo el logo -->
+<div class="bg-white border-b border-gray-200">
+  <div class="max-w-6xl mx-auto px-6 py-3 flex items-center">
+    <img src="data:image/jpeg;base64,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UVpZRWllFaWUVpZRWllFaWUVpYkq6sqFaWUVpZRWllFaWUVpZRWljxK8sOZW1lFaWUVqLNBWljSrk2SYVpZYK2sQrqySVpZRWllgrSxJc/QZ3zmJSIJiRjGYiQjDLEAZ4ZGXD2+JW/k+75Xbw9nRPMwz6eeOPenBPTP0PnczpI5Y6xxO3opp2Z6Xz/obWjG1q5z+1z+7y+9lxbfJ6uhzonocw6K173lWtaO6vWHfiCahAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJBAAAAAAAAJYyEiAAAAAGOIMgyAAEggEmBCAZZAAEsIIJJZgxxINgBIDHEAgyJSEBEyCAIDESBOYQEJgliDIDEIBmBIgE//2gAMAwEAAgADAAAAIQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABHAAAEAADLAABOAACAAAPPAAAMAC4vxpx2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEABAAAAFNABAAANPCAAAMADKACCA8yWXnQHLAADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDPDDDDDDDObDDHDFHWSAANABLAAFNO8FyzmXA0ul6oAPAAABCwwgAAAAAAAAAAABwQAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARCAANPCBAA1ZYbcBZqxqAzowPAggvo8lVQDE0hjaC6wwoS70x7FziAwy1yAggggggggggggggggggggggggghdvAAAIAPLLY3MhEpLW/KhJfAAAggv4sUCpRlPfFmeeqQjNpbfOV6RWhqsSwggggggggggggggggggggggggggWUFLKAAPKwKMbizs+/BcXqmYgAggv6QmVC2UKYRiMf4QjWUzL+dqEIwQjowgggggggggggggggggggggggggqwAMPPBAGIGu55HCHj9s6/qm9AMssosskosssskssokssssssskskssgMskssssssjMsssssjnsstvOsvuspjP6BEEAPPPCbbbCfa0ybGiwTZIQAgggggggggggggggggggggggggggggAggggggggIAgggggnvgggAgAvgggHoQHogAHPvPfg4o/fPP3HfPfXYQP/2gAMAwEAAgADAAAAEPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP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" alt="Plantas Solares" class="h-9 w-auto">
+  </div>
+</div>
+
+<!-- Registrar movimiento -->
+<div class="max-w-6xl mx-auto px-6 mt-5">
+  <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+      </div>
+      <div>
+        <h2 class="text-base font-semibold text-gray-900">Registrar movimiento</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Escanea el código QR del producto para sumar o restar existencia.</p>
+      </div>
     </div>
-    <div id="reader"></div>
-</div>
 
-<div class="card">
-    <select id="filterField">
-        <option value="0">Buscar por Código</option>
-        <option value="2">Buscar por Familia</option>
-        <option value="4">Buscar por Descripción</option>
-    </select>
-    <input type="text" id="searchInput" placeholder="Escribe para filtrar...">
-</div>
-
-<div id="contenedorTarjetas"></div>
-
-<div id="nuevoModal" class="modal">
-    <div class="modal-content">
-        <h4>Nuevo Producto</h4>
-        <input type="text" id="newCod" placeholder="Código (Único)*">
-        <input type="text" id="newDesc" placeholder="Descripción*">
-        <div class="grid-2">
-            <input type="text" id="newFamilia" placeholder="Familia">
-            <input type="text" id="newMarca" placeholder="Marca">
-            <input type="text" id="newEstatus" placeholder="Estatus">
-            <input type="number" id="newExistencia" placeholder="Existencia" value="0">
-            <input type="text" id="newUnidad" placeholder="Unidad (Ej. Pza, Kg, Tramo)">
-            <input type="text" id="newUbicacion" placeholder="Ubicación">
-            <input type="text" id="newMoneda" placeholder="Moneda (Ej. MXN)">
-            <input type="number" id="newCosto" placeholder="Último Costo" step="0.01">
-            <input type="number" id="newPMayoreo" placeholder="Precio Mayoreo" step="0.01">
-            <input type="number" id="newPPublico" placeholder="Precio Público" step="0.01">
-        </div>
-        <button onclick="guardarNuevo()" style="background:#6366f1; width:100%; margin-top:10px;">Guardar</button>
-        <button onclick="cerrarModal('nuevoModal')" style="background:#64748b; width:100%; margin-top:5px;">Cancelar</button>
+    <div class="flex flex-wrap gap-2">
+      <button id="btnEntrada" onclick="cambiarModo('entrada')" class="flex-1 min-w-28 border border-gray-200 rounded-md px-4 py-2 text-sm font-medium flex items-center justify-center gap-1.5 transition-colors">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10"/><path d="M8 10l4 4 4-4"/><path d="M4 18h16"/></svg>
+        Entrada
+      </button>
+      <button id="btnSalida" onclick="cambiarModo('salida')" class="flex-1 min-w-28 border border-gray-200 rounded-md px-4 py-2 text-sm font-medium flex items-center justify-center gap-1.5 transition-colors">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14V4"/><path d="M8 8l4-4 4 4"/><path d="M4 18h16"/></svg>
+        Salida
+      </button>
+      <button onclick="abrirModal('nuevoModal')" class="flex-1 min-w-28 bg-blue-700 hover:bg-blue-800 text-white rounded-md px-4 py-2 text-sm font-medium flex items-center justify-center gap-1.5">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo
+      </button>
     </div>
+
+    <div id="scannerArea" class="hidden mt-4">
+      <div class="border border-gray-200 rounded-lg p-2 bg-gray-50">
+        <div id="reader"></div>
+      </div>
+      <button onclick="detenerEscaneo()" class="w-full mt-2 border border-gray-200 rounded-md px-4 py-2 text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-gray-50">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Cancelar escaneo
+      </button>
+    </div>
+  </div>
 </div>
 
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <h4>Editar Producto</h4>
-        <input type="hidden" id="editId">
-        <input type="password" id="passInput" placeholder="Contraseña de autorización*">
-        <hr style="border: 0.5px solid #eee; margin-bottom: 15px;">
-        
-        <input type="text" id="editDesc" placeholder="Descripción*">
-        <div class="grid-2">
-            <input type="text" id="editFamilia" placeholder="Familia">
-            <input type="text" id="editMarca" placeholder="Marca">
-            <input type="text" id="editEstatus" placeholder="Estatus">
-            <input type="number" id="editExistencia" placeholder="Existencia">
-            <input type="text" id="editUnidad" placeholder="Unidad">
-            <input type="text" id="editUbicacion" placeholder="Ubicación">
-            <input type="text" id="editMoneda" placeholder="Moneda">
-            <input type="number" id="editCosto" placeholder="Último Costo" step="0.01">
-            <input type="number" id="editPMayoreo" placeholder="Precio Mayoreo" step="0.01">
-            <input type="number" id="editPPublico" placeholder="Precio Público" step="0.01">
-        </div>
-        <button onclick="validarYEditar()" style="background:#f59e0b; width:100%; margin-top:10px;">Actualizar</button>
-        <button onclick="cerrarModal('editModal')" style="background:#64748b; width:100%; margin-top:5px;">Cancelar</button>
+<!-- Buscar -->
+<div class="max-w-6xl mx-auto px-6 mt-4">
+  <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <div class="w-9 h-9 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </div>
+      <div>
+        <h2 class="text-base font-semibold text-gray-900">Buscar en el inventario</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Filtra por el campo que necesites.</p>
+      </div>
     </div>
+
+    <div class="flex flex-col sm:flex-row gap-2">
+      <select id="filterField" class="sm:w-44 border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="codigo">Código</option>
+        <option value="descripcion">Descripción</option>
+        <option value="familia">Familia</option>
+        <option value="marca">Marca</option>
+        <option value="ubicacion">Ubicación</option>
+      </select>
+      <div class="relative flex-1">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" placeholder="Escribe para filtrar..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+    </div>
+
+    <button id="chipBajoStock" onclick="toggleChip()" class="mt-3 border border-gray-200 text-gray-600 rounded-md px-3 py-1.5 text-xs font-medium inline-flex items-center gap-1.5">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Solo bajo stock / agotados
+    </button>
+  </div>
 </div>
 
-<div id="qtyModal" class="modal">
-    <div class="modal-content">
-        <h4>Cantidad a Mover</h4>
-        <input type="number" id="qtyInput" value="1" min="1">
-        <button onclick="procesarMovimiento()" style="background:#6366f1; width:100%;">Confirmar</button>
-        <button onclick="cerrarModal('qtyModal')" style="background:#64748b; width:100%; margin-top:5px;">Cancelar</button>
-    </div>
+<!-- Grid de productos -->
+<div id="contenedorTarjetas" class="max-w-6xl mx-auto px-6 mt-5 pb-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div class="col-span-full text-center py-16 text-gray-500 text-sm flex items-center justify-center gap-2">
+    <span class="spinner"></span> Cargando inventario…
+  </div>
 </div>
 
-<div id="qrModal" class="modal" onclick="cerrarModal('qrModal')">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <h4 id="qrModalTitle">Código QR</h4>
-        <img id="qrModalImg" src="" alt="Código QR en Grande">
-        <button onclick="descargarDesdeModal()" style="background:#3b82f6; width:100%; margin-bottom: 8px;">Descargar Imagen</button>
-        <button onclick="cerrarModal('qrModal')" style="background:#64748b; width:100%;">Cerrar</button>
+<!-- Modal: Nuevo producto -->
+<div id="nuevoModal" class="modal-overlay">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-sm max-h-[85vh] overflow-y-auto p-5">
+    <h3 class="flex items-center gap-2 text-base font-semibold text-gray-900 mb-4">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="text-blue-700"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo producto
+    </h3>
+    <div class="space-y-2.5">
+      <input type="text" id="newCod" placeholder="Código (único)*" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <input type="text" id="newDesc" placeholder="Descripción*" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <div class="grid grid-cols-2 gap-2">
+        <input type="text" id="newFamilia" placeholder="Familia" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="text" id="newMarca" placeholder="Marca" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="text" id="newEstatus" placeholder="Estatus" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="number" id="newExistencia" placeholder="Existencia" value="0" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="text" id="newUnidad" placeholder="Unidad" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="text" id="newUbicacion" placeholder="Ubicación" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="text" id="newMoneda" placeholder="Moneda (MXN)" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="number" step="0.01" id="newCosto" placeholder="Último costo" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="number" step="0.01" id="newPMayoreo" placeholder="P. mayoreo" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="number" step="0.01" id="newPPublico" placeholder="P. público" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+      </div>
     </div>
+    <button onclick="guardarNuevo()" class="w-full mt-4 bg-blue-700 hover:bg-blue-800 text-white rounded-md px-4 py-2 text-sm font-medium">Guardar producto</button>
+    <button onclick="cerrarModal('nuevoModal')" class="w-full mt-2 border border-gray-200 rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-50">Cancelar</button>
+  </div>
 </div>
+
+<!-- Modal: Editar producto -->
+<div id="editModal" class="modal-overlay">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-sm max-h-[85vh] overflow-y-auto p-5">
+    <h3 class="flex items-center gap-2 text-base font-semibold text-gray-900 mb-4">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      Editar <span id="editTitleCod" class="text-gray-500 font-normal"></span>
+    </h3>
+    <input type="hidden" id="editId">
+    <input type="password" id="passInput" placeholder="Contraseña de autorización*" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm mb-3">
+    <hr class="border-gray-100 mb-3">
+    <div class="space-y-2.5">
+      <input type="text" id="editDesc" placeholder="Descripción*" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm">
+      <div class="grid grid-cols-2 gap-2">
+        <input type="text" id="editFamilia" placeholder="Familia" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="text" id="editMarca" placeholder="Marca" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="text" id="editEstatus" placeholder="Estatus" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="number" id="editExistencia" placeholder="Existencia" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="text" id="editUnidad" placeholder="Unidad" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="text" id="editUbicacion" placeholder="Ubicación" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="text" id="editMoneda" placeholder="Moneda" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="number" step="0.01" id="editCosto" placeholder="Último costo" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="number" step="0.01" id="editPMayoreo" placeholder="P. mayoreo" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+        <input type="number" step="0.01" id="editPPublico" placeholder="P. público" class="border border-gray-200 rounded-md px-3 py-2 text-sm">
+      </div>
+    </div>
+    <button onclick="validarYEditar()" class="w-full mt-4 bg-blue-700 hover:bg-blue-800 text-white rounded-md px-4 py-2 text-sm font-medium">Actualizar</button>
+    <button onclick="cerrarModal('editModal')" class="w-full mt-2 border border-gray-200 rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-50">Cancelar</button>
+  </div>
+</div>
+
+<!-- Modal: cantidad -->
+<div id="qtyModal" class="modal-overlay">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-xs p-5">
+    <h3 class="text-base font-semibold text-gray-900 mb-3">Cantidad a mover — <span id="qtyCodigo" class="text-gray-500 font-normal"></span></h3>
+    <input type="number" id="qtyInput" value="1" min="1" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm mb-4">
+    <button onclick="procesarMovimiento()" class="w-full bg-blue-700 hover:bg-blue-800 text-white rounded-md px-4 py-2 text-sm font-medium">Confirmar</button>
+    <button onclick="cerrarModal('qtyModal')" class="w-full mt-2 border border-gray-200 rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-50">Cancelar</button>
+  </div>
+</div>
+
+<!-- Modal: QR grande -->
+<div id="qrModal" class="modal-overlay" onclick="cerrarModal('qrModal')">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-xs p-5 text-center" onclick="event.stopPropagation()">
+    <h3 id="qrModalTitle" class="text-base font-semibold text-gray-900 mb-3"></h3>
+    <img id="qrModalImg" src="" alt="QR ampliado" class="w-full max-w-[230px] mx-auto rounded-lg border border-gray-200 mb-3">
+    <button onclick="descargarDesdeModal()" class="w-full bg-blue-700 hover:bg-blue-800 text-white rounded-md px-4 py-2 text-sm font-medium">Descargar imagen</button>
+    <button onclick="cerrarModal('qrModal')" class="w-full mt-2 border border-gray-200 rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-50">Cerrar</button>
+  </div>
+</div>
+
+<div id="toastContainer" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[2000] flex flex-col items-center gap-2 w-[calc(100%-2rem)] max-w-sm"></div>
 
 <script>
-    const API_URL = "https://control-inventario-a9bc.onrender.com";
-    let productosGlobales = [], modoActual = null, codEscaneado = null, scanner = null;
-    let qrActualParaDescarga = '';
+  const API_URL = "https://control-inventario-a9bc.onrender.com";
+  const UMBRAL_BAJO = 5;
 
-    // Función para mostrar la fecha de forma legible (ej. 8/6/2026, 3:13:44 p.m.)
-    function formatearFecha(fechaStr) {
-        if (!fechaStr) return '-';
-        const d = new Date(fechaStr);
-        return isNaN(d) ? fechaStr : d.toLocaleString('es-MX');
+  let productosGlobales = [], modoActual = null, codEscaneado = null, scanner = null;
+  let qrActualParaDescarga = '';
+  let soloBajoStock = false;
+
+  const ICON_DOWNLOAD = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>`;
+  const ICON_PENCIL = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`;
+  const ICON_TRASH = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>`;
+
+  function showToast(msg, type = '') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = 'text-sm px-4 py-2.5 rounded-md shadow-lg text-white text-center ' +
+      (type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : 'bg-gray-900');
+    t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 3200);
+  }
+
+  function qrUrl(codigo, size) {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(codigo)}`;
+  }
+
+  function formatearFecha(fechaStr) {
+    if (!fechaStr) return '-';
+    const d = new Date(fechaStr);
+    return isNaN(d) ? fechaStr : d.toLocaleString('es-MX');
+  }
+
+  function formatMoney(n, moneda) {
+    const v = (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return v + (moneda ? ' ' + moneda : '');
+  }
+
+  async function cargar() {
+    try {
+      const res = await fetch(`${API_URL}/productos`);
+      if (!res.ok) throw new Error('bad status');
+      productosGlobales = await res.json();
+      aplicarFiltros();
+    } catch (e) {
+      document.getElementById('contenedorTarjetas').innerHTML =
+        '<div class="col-span-full text-center py-16 text-gray-500 text-sm">No se pudo cargar el inventario.</div>';
+      showToast('No se pudo conectar con el servidor', 'error');
+    }
+  }
+
+  function aplicarFiltros() {
+    const campo = document.getElementById('filterField').value;
+    const texto = document.getElementById('searchInput').value.trim().toLowerCase();
+    let data = productosGlobales;
+    if (texto) {
+      data = data.filter(p => (p[campo] || '').toString().toLowerCase().includes(texto));
+    }
+    if (soloBajoStock) {
+      data = data.filter(p => (Number(p.existencia) || 0) <= UMBRAL_BAJO);
+    }
+    renderizar(data);
+  }
+
+  function toggleChip() {
+    soloBajoStock = !soloBajoStock;
+    const chip = document.getElementById('chipBajoStock');
+    chip.classList.toggle('bg-orange-500', soloBajoStock);
+    chip.classList.toggle('text-white', soloBajoStock);
+    chip.classList.toggle('border-orange-500', soloBajoStock);
+    chip.classList.toggle('text-gray-600', !soloBajoStock);
+    chip.classList.toggle('border-gray-200', !soloBajoStock);
+    aplicarFiltros();
+  }
+
+  document.getElementById('searchInput').addEventListener('keyup', aplicarFiltros);
+  document.getElementById('filterField').addEventListener('change', aplicarFiltros);
+
+  function renderizar(data) {
+    const cont = document.getElementById('contenedorTarjetas');
+    if (!data.length) {
+      cont.innerHTML = '<div class="col-span-full text-center py-16 text-gray-500 text-sm">No hay productos que coincidan con tu búsqueda.</div>';
+      return;
     }
 
-    function cargar() {
-        fetch(`${API_URL}/productos`).then(res => res.json()).then(data => {
-            productosGlobales = data;
-            renderizar(data);
-        });
+    cont.innerHTML = data.map(p => {
+      const existencia = Number(p.existencia) || 0;
+      const agotado = existencia <= 0;
+      const bajo = !agotado && existencia <= UMBRAL_BAJO;
+      let badges = '';
+      if (agotado) badges += `<span class="bg-red-100 text-red-700 rounded-full font-medium px-2 py-0.5 text-xs">Agotado</span>`;
+      if (bajo) badges += `<span class="bg-orange-100 text-orange-700 rounded-full font-medium px-2 py-0.5 text-xs">Bajo stock</span>`;
+
+      function row(label, value, strong) {
+        return `<div class="flex items-center justify-between py-1.5 text-sm">
+          <span class="text-gray-500">${label}</span>
+          <span class="text-right max-w-[60%] truncate ${strong ? 'font-semibold text-gray-900' : 'font-medium text-gray-800'}">${value}</span>
+        </div>`;
+      }
+
+      return `
+      <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow p-5">
+        <div class="flex items-start justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-semibold text-gray-900">${p.codigo}</span>
+            ${badges}
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <img src="${qrUrl(p.codigo, 100)}" alt="QR de ${p.codigo}" class="w-10 h-10 rounded-md border border-gray-200 cursor-pointer" onclick="abrirQRGrande('${p.codigo}')">
+            <button onclick="descargarQR('${p.codigo}')" title="Descargar QR" class="w-7 h-7 border border-gray-200 rounded-md flex items-center justify-center text-gray-500 hover:bg-gray-50">${ICON_DOWNLOAD}</button>
+          </div>
+        </div>
+
+        <p class="text-sm text-gray-600 mb-2">${p.descripcion}</p>
+
+        <div class="divide-y divide-gray-100 border-t border-gray-100">
+          ${row('Familia', p.familia || '-')}
+          ${row('Marca', p.marca || '-')}
+          ${row('Estatus', p.estatus || '-')}
+          ${row('Existencia', `${existencia} ${p.unidad || ''}`, true)}
+          ${row('Ubicación', p.ubicacion || '-')}
+          ${row('Último costo', formatMoney(p.ultimo_costo, p.moneda))}
+          ${row('P. mayoreo', formatMoney(p.precio_mayoreo, p.moneda))}
+          ${row('P. público', formatMoney(p.precio_publico, p.moneda))}
+          ${row('Última act.', formatearFecha(p.ultima_actualizacion))}
+        </div>
+
+        <div class="flex gap-2 mt-4">
+          <button onclick="prepararEd('${p.codigo}')" class="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-1.5">${ICON_PENCIL} Editar</button>
+          <button onclick="borrarProducto('${p.codigo}')" class="flex-1 border border-red-200 rounded-md px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 flex items-center justify-center gap-1.5">${ICON_TRASH} Eliminar</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function abrirQRGrande(codigo) {
+    qrActualParaDescarga = codigo;
+    document.getElementById('qrModalTitle').textContent = codigo;
+    document.getElementById('qrModalImg').src = qrUrl(codigo, 400);
+    abrirModal('qrModal');
+  }
+
+  function descargarDesdeModal() { descargarQR(qrActualParaDescarga); }
+
+  function descargarQR(codigo) {
+    fetch(qrUrl(codigo, 400)).then(r => r.blob()).then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `QR_${codigo}.png`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }).catch(() => window.open(qrUrl(codigo, 400), '_blank'));
+  }
+
+  function abrirModal(id) { document.getElementById(id).classList.add('open'); }
+  function cerrarModal(id) {
+    document.getElementById(id).classList.remove('open');
+    if (scanner && id === 'qtyModal') {
+      try { scanner.resume(); } catch (e) {}
     }
+  }
 
-    function renderizar(data) {
-        document.getElementById("contenedorTarjetas").innerHTML = data.map(p => `
-            <div class="item-card">
-                <div class="row-data"><span class="label">Código</span><span><strong>${p.codigo}</strong></span></div>
-                
-                <div class="row-data">
-                    <span class="label">Código QR</span>
-                    <div class="qr-container">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${p.codigo}" class="qr-thumb" onclick="abrirQRGrande('${p.codigo}')" title="Toca para ampliar">
-                        <button onclick="descargarQR('${p.codigo}')" style="background:#3b82f6; padding: 6px 12px; font-size: 11px; width: auto; border-radius: 6px;">Descargar</button>
-                    </div>
-                </div>
+  function cambiarModo(m) {
+    modoActual = m;
+    document.getElementById('scannerArea').classList.remove('hidden');
 
-                <div class="row-data"><span class="label">Descripción</span><span style="text-align: right;">${p.descripcion}</span></div>
-                <div class="row-data"><span class="label">Familia</span><span>${p.familia || '-'}</span></div>
-                <div class="row-data"><span class="label">Marca</span><span>${p.marca || '-'}</span></div>
-                <div class="row-data"><span class="label">Estatus</span><span>${p.estatus || '-'}</span></div>
-                
-                <div class="row-data"><span class="label">Existencia</span><span><strong>${p.existencia}</strong></span></div>
-                <div class="row-data"><span class="label">Unidad</span><span>${p.unidad || '-'}</span></div>
-                
-                <div class="row-data"><span class="label">Ubicación</span><span>${p.ubicacion || '-'}</span></div>
-                <div class="row-data"><span class="label">Último Costo</span><span>${p.ultimo_costo || 0} ${p.moneda || ''}</span></div>
-                <div class="row-data"><span class="label">P. Mayoreo</span><span>${p.precio_mayoreo || 0} ${p.moneda || ''}</span></div>
-                <div class="row-data"><span class="label">P. Público</span><span>${p.precio_publico || 0} ${p.moneda || ''}</span></div>
-                
-                <div class="row-data"><span class="label">Última Act.</span><span>${formatearFecha(p.ultima_actualizacion)}</span></div>
-                
-                <div style="display: flex; gap: 8px; margin-top: 10px;">
-                    <button onclick="prepararEd('${p.codigo}')" style="background:#f59e0b; width: 100%;">Editar</button>
-                    <button onclick="borrarProducto('${p.codigo}')" style="background:#ef4444; width: 100%;">Eliminar</button>
-                </div>
-            </div>`).join('');
-    }
+    const bEntrada = document.getElementById('btnEntrada');
+    const bSalida = document.getElementById('btnSalida');
+    bEntrada.className = 'flex-1 min-w-28 rounded-md px-4 py-2 text-sm font-medium flex items-center justify-center gap-1.5 transition-colors ' +
+      (m === 'entrada' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border border-gray-200 text-gray-700 hover:bg-gray-50');
+    bSalida.className = 'flex-1 min-w-28 rounded-md px-4 py-2 text-sm font-medium flex items-center justify-center gap-1.5 transition-colors ' +
+      (m === 'salida' ? 'bg-blue-700 hover:bg-blue-800 text-white' : 'border border-gray-200 text-gray-700 hover:bg-gray-50');
 
-    function abrirQRGrande(codigo) {
-        qrActualParaDescarga = codigo;
-        document.getElementById('qrModalTitle').innerText = "QR: " + codigo;
-        document.getElementById('qrModalImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${codigo}`;
-        abrirModal('qrModal');
-    }
-
-    function descargarDesdeModal() { descargarQR(qrActualParaDescarga); }
-
-    function descargarQR(codigo) {
-        const url = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${codigo}`;
-        fetch(url).then(r => r.blob()).then(blob => {
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `QR_${codigo}.png`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        }).catch(() => window.open(url, '_blank'));
-    }
-
-    document.getElementById('searchInput').addEventListener('keyup', function() {
-        const f = this.value.toLowerCase();
-        renderizar(productosGlobales.filter(p => 
-            (p.descripcion && p.descripcion.toLowerCase().includes(f)) || 
-            (p.codigo && p.codigo.toLowerCase().includes(f))
-        ));
+    if (scanner) { try { scanner.clear(); } catch (e) {} }
+    scanner = new Html5QrcodeScanner('reader', { fps: 10, qrbox: 220 });
+    scanner.render((decoded) => {
+      codEscaneado = decoded;
+      document.getElementById('qtyCodigo').textContent = decoded;
+      abrirModal('qtyModal');
+      try { scanner.pause(); } catch (e) {}
     });
+  }
 
-    function abrirModal(id) { document.getElementById(id).style.display = "flex"; }
-    function cerrarModal(id) { document.getElementById(id).style.display = "none"; if(scanner && id !== 'qrModal') scanner.resume(); }
+  function detenerEscaneo() {
+    if (scanner) { try { scanner.clear(); } catch (e) {} scanner = null; }
+    document.getElementById('scannerArea').classList.add('hidden');
+    document.getElementById('btnEntrada').className = 'flex-1 min-w-28 border border-gray-200 rounded-md px-4 py-2 text-sm font-medium flex items-center justify-center gap-1.5 transition-colors text-gray-700 hover:bg-gray-50';
+    document.getElementById('btnSalida').className = 'flex-1 min-w-28 border border-gray-200 rounded-md px-4 py-2 text-sm font-medium flex items-center justify-center gap-1.5 transition-colors text-gray-700 hover:bg-gray-50';
+  }
 
-    function cambiarModo(m) { 
-        modoActual = m; 
-        scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 200 }); 
-        scanner.render((t) => { codEscaneado = t; abrirModal('qtyModal'); scanner.pause(); }); 
+  async function procesarMovimiento() {
+    const cant = parseInt(document.getElementById('qtyInput').value);
+    try {
+      const res = await fetch(`${API_URL}/movimiento`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: codEscaneado, cantidad: modoActual === 'entrada' ? cant : -cant })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Error en movimiento');
+      cerrarModal('qtyModal');
+      document.getElementById('qtyInput').value = 1;
+      showToast(`${data.status}: ${data.producto} → ${data.nuevo_stock}`, 'success');
+      cargar();
+      if (scanner) { try { scanner.resume(); } catch (e) {} }
+    } catch (e) {
+      showToast(e.message || 'Error al registrar el movimiento', 'error');
     }
+  }
 
-    function procesarMovimiento() { 
-        const cant = parseInt(document.getElementById('qtyInput').value);
-        fetch(`${API_URL}/movimiento`, { 
-            method:'POST', 
-            headers:{'Content-Type':'application/json'}, 
-            body: JSON.stringify({ 
-                id: codEscaneado, 
-                cantidad: modoActual === 'entrada' ? cant : -cant 
-            }) 
-        }).then(() => location.reload()).catch(e => alert("Error en movimiento")); 
+  function limpiarFormularioNuevo() {
+    ['newCod','newDesc','newFamilia','newMarca','newEstatus','newUnidad','newUbicacion','newMoneda'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('newExistencia').value = 0;
+    ['newCosto','newPMayoreo','newPPublico'].forEach(id => document.getElementById(id).value = '');
+  }
+
+  async function guardarNuevo() {
+    const datos = {
+      codigo: document.getElementById('newCod').value.trim(),
+      descripcion: document.getElementById('newDesc').value.trim(),
+      familia: document.getElementById('newFamilia').value,
+      marca: document.getElementById('newMarca').value,
+      estatus: document.getElementById('newEstatus').value,
+      existencia: parseInt(document.getElementById('newExistencia').value || 0),
+      unidad: document.getElementById('newUnidad').value,
+      ubicacion: document.getElementById('newUbicacion').value,
+      moneda: document.getElementById('newMoneda').value,
+      ultimo_costo: parseFloat(document.getElementById('newCosto').value || 0),
+      precio_mayoreo: parseFloat(document.getElementById('newPMayoreo').value || 0),
+      precio_publico: parseFloat(document.getElementById('newPPublico').value || 0)
+    };
+    if (!datos.codigo || !datos.descripcion) { showToast('Código y descripción son obligatorios', 'error'); return; }
+    try {
+      const res = await fetch(`${API_URL}/productos`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Error al guardar');
+      cerrarModal('nuevoModal');
+      limpiarFormularioNuevo();
+      showToast('Producto registrado', 'success');
+      cargar();
+    } catch (e) {
+      showToast(e.message || 'Error al guardar el producto', 'error');
     }
+  }
 
-    function guardarNuevo() {
-        const datos = {
-            codigo: document.getElementById('newCod').value,
-            descripcion: document.getElementById('newDesc').value,
-            familia: document.getElementById('newFamilia').value,
-            marca: document.getElementById('newMarca').value,
-            estatus: document.getElementById('newEstatus').value,
-            existencia: parseInt(document.getElementById('newExistencia').value || 0),
-            unidad: document.getElementById('newUnidad').value,
-            ubicacion: document.getElementById('newUbicacion').value,
-            moneda: document.getElementById('newMoneda').value,
-            ultimo_costo: parseFloat(document.getElementById('newCosto').value || 0),
-            precio_mayoreo: parseFloat(document.getElementById('newPMayoreo').value || 0),
-            precio_publico: parseFloat(document.getElementById('newPPublico').value || 0)
-        };
-        
-        if(!datos.codigo || !datos.descripcion) { alert("Código y Descripción son obligatorios"); return; }
+  function prepararEd(cod) {
+    const p = productosGlobales.find(prod => prod.codigo === cod);
+    document.getElementById('editId').value = p.codigo;
+    document.getElementById('editTitleCod').textContent = p.codigo;
+    document.getElementById('editDesc').value = p.descripcion || '';
+    document.getElementById('editFamilia').value = p.familia || '';
+    document.getElementById('editMarca').value = p.marca || '';
+    document.getElementById('editEstatus').value = p.estatus || '';
+    document.getElementById('editExistencia').value = p.existencia || 0;
+    document.getElementById('editUnidad').value = p.unidad || '';
+    document.getElementById('editUbicacion').value = p.ubicacion || '';
+    document.getElementById('editMoneda').value = p.moneda || '';
+    document.getElementById('editCosto').value = p.ultimo_costo || 0;
+    document.getElementById('editPMayoreo').value = p.precio_mayoreo || 0;
+    document.getElementById('editPPublico').value = p.precio_publico || 0;
+    document.getElementById('passInput').value = '';
+    abrirModal('editModal');
+  }
 
-        fetch(`${API_URL}/productos`, { 
-            method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(datos) 
-        }).then(() => location.reload()).catch(e => alert("Error al guardar"));
+  async function validarYEditar() {
+    if (document.getElementById('passInput').value !== 'admin123') {
+      showToast('Contraseña incorrecta', 'error');
+      return;
     }
-    
-    function prepararEd(cod) {
-        const p = productosGlobales.find(prod => prod.codigo === cod);
-        document.getElementById('editId').value = p.codigo;
-        document.getElementById('editDesc').value = p.descripcion || '';
-        document.getElementById('editFamilia').value = p.familia || '';
-        document.getElementById('editMarca').value = p.marca || '';
-        document.getElementById('editEstatus').value = p.estatus || '';
-        document.getElementById('editExistencia').value = p.existencia || 0;
-        document.getElementById('editUnidad').value = p.unidad || '';
-        document.getElementById('editUbicacion').value = p.ubicacion || '';
-        document.getElementById('editMoneda').value = p.moneda || '';
-        document.getElementById('editCosto').value = p.ultimo_costo || 0;
-        document.getElementById('editPMayoreo').value = p.precio_mayoreo || 0;
-        document.getElementById('editPPublico').value = p.precio_publico || 0;
-        document.getElementById('passInput').value = ''; 
-        abrirModal('editModal');
+    const codigo = document.getElementById('editId').value;
+    const datos = {
+      password: document.getElementById('passInput').value,
+      descripcion: document.getElementById('editDesc').value,
+      familia: document.getElementById('editFamilia').value,
+      marca: document.getElementById('editMarca').value,
+      estatus: document.getElementById('editEstatus').value,
+      existencia: parseInt(document.getElementById('editExistencia').value || 0),
+      unidad: document.getElementById('editUnidad').value,
+      ubicacion: document.getElementById('editUbicacion').value,
+      moneda: document.getElementById('editMoneda').value,
+      ultimo_costo: parseFloat(document.getElementById('editCosto').value || 0),
+      precio_mayoreo: parseFloat(document.getElementById('editPMayoreo').value || 0),
+      precio_publico: parseFloat(document.getElementById('editPPublico').value || 0)
+    };
+    try {
+      const res = await fetch(`${API_URL}/productos/${codigo}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos)
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.detail || 'Error al actualizar'); }
+      cerrarModal('editModal');
+      showToast('Producto actualizado', 'success');
+      cargar();
+    } catch (e) {
+      showToast(e.message || 'Error al actualizar', 'error');
     }
+  }
 
-    function validarYEditar() {
-        if(document.getElementById('passInput').value !== "admin123") { 
-            alert("Contraseña incorrecta"); 
-            return; 
-        }
-        const codigo = document.getElementById('editId').value;
-        const datos = {
-            password: document.getElementById('passInput').value,
-            descripcion: document.getElementById('editDesc').value,
-            familia: document.getElementById('editFamilia').value,
-            marca: document.getElementById('editMarca').value,
-            estatus: document.getElementById('editEstatus').value,
-            existencia: parseInt(document.getElementById('editExistencia').value || 0),
-            unidad: document.getElementById('editUnidad').value,
-            ubicacion: document.getElementById('editUbicacion').value,
-            moneda: document.getElementById('editMoneda').value,
-            ultimo_costo: parseFloat(document.getElementById('editCosto').value || 0),
-            precio_mayoreo: parseFloat(document.getElementById('editPMayoreo').value || 0),
-            precio_publico: parseFloat(document.getElementById('editPPublico').value || 0)
-        };
-        fetch(`${API_URL}/productos/${codigo}`, { 
-            method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(datos) 
-        }).then(() => location.reload()).catch(e => alert("Error al actualizar"));
+  async function borrarProducto(codigo) {
+    if (!confirm(`¿Eliminar permanentemente el código ${codigo}?`)) return;
+    try {
+      const res = await fetch(`${API_URL}/productos/${codigo}`, { method: 'DELETE' });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.detail || 'Error al eliminar'); }
+      showToast('Producto eliminado', 'success');
+      cargar();
+    } catch (e) {
+      showToast(e.message || 'No se pudo conectar con el servidor', 'error');
     }
+  }
 
-    // NUEVA FUNCIÓN: Eliminar Producto
-    async function borrarProducto(codigo) {
-        const confirmacion = confirm(`⚠️ ¿Estás seguro de que deseas eliminar permanentemente el código ${codigo}?`);
-        
-        if (confirmacion) {
-            try {
-                const response = await fetch(`${API_URL}/productos/${codigo}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    alert("Producto eliminado exitosamente.");
-                    location.reload(); // Recarga la página para actualizar la lista
-                } else {
-                    const errorData = await response.json();
-                    alert(`Error: ${errorData.detail}`);
-                }
-            } catch (error) {
-                console.error("Hubo un error de conexión:", error);
-                alert("No se pudo conectar con el servidor.");
-            }
-        }
-    }
-
-    window.onload = cargar;
-    
+  window.onload = cargar;
 </script>
 </body>
 </html>
