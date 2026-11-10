@@ -6,6 +6,7 @@
 <title>Inventario</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(17,24,39,.55); z-index:1000; align-items:center; justify-content:center; padding:16px; }
@@ -143,6 +144,10 @@
     <button id="chipBajoStock" onclick="toggleChip()" class="mt-3 border border-gray-200 text-gray-600 rounded-md px-3 py-1.5 text-xs font-medium inline-flex items-center gap-1.5">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       Solo bajo stock / agotados
+    </button>
+        <button onclick="exportarMarca()" class="mt-3 ml-2 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-md px-3 py-1.5 text-xs font-medium inline-flex items-center gap-1.5">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+      Exportar marca a Excel
     </button>
   </div>
 </div>
@@ -803,7 +808,37 @@
     if (okN) showToast(`${okN} ${plural(okN, 'producto dado de baja', 'productos dados de baja')}`, 'success');
     if (fallidos.length) showToast(`${fallidos.length} ${plural(fallidos.length, 'falló', 'fallaron')}: revisa la lista`, 'error');
   }
+  // ---------- Exportar una marca a Excel ----------
+  function exportarMarca() {
+    if (!productosGlobales.length) { showToast('El inventario aún no termina de cargar', 'error'); return; }
 
+    // Si ya estás filtrando por Marca, la sugiere automáticamente
+    const sugerida = document.getElementById('filterField').value === 'marca'
+      ? document.getElementById('searchInput').value.trim() : '';
+    const marca = prompt('¿Qué marca quieres exportar?', sugerida);
+    if (!marca || !marca.trim()) return;
+
+    const buscada = marca.trim().toLowerCase();
+    const filas = productosGlobales
+      .filter(p => (p.marca || '').trim().toLowerCase() === buscada)
+      .map(p => ({
+        'Nombre':         p.descripcion || '',
+        'Código':         p.codigo,
+        'Último costo':   Number(p.ultimo_costo) || 0,
+        'Precio público': Number(p.precio_publico) || 0,
+        'Precio mayoreo': Number(p.precio_mayoreo) || 0,
+      }));
+
+    if (!filas.length) { showToast(`No hay productos de la marca "${marca.trim()}"`, 'error'); return; }
+
+    const limpio = marca.trim().replace(/[:\\\/?*\[\]]/g, '');
+    const hoja = XLSX.utils.json_to_sheet(filas);
+    hoja['!cols'] = [{ wch: 45 }, { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, (limpio || 'Inventario').slice(0, 31));
+    XLSX.writeFile(libro, `Inventario_${limpio || 'marca'}.xlsx`);
+    showToast(`Excel generado: ${filas.length} productos`, 'success');
+  }
   window.onload = cargar;
 </script>
 </body>
