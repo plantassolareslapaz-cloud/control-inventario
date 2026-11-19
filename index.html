@@ -834,7 +834,10 @@
 
     const limpio = marca.trim().replace(/[:\\\/?*\[\]]/g, '');
     const hoja = XLSX.utils.json_to_sheet(filas);
-       hoja['!cols'] = [{ wch: 45 }, { wch: 16 }, { wch: 11 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+           // Ancho automático: se ajusta al texto más largo de cada columna (máximo 60)
+    hoja['!cols'] = Object.keys(filas[0]).map(col => ({
+      wch: Math.min(60, Math.max(col.length, ...filas.map(f => String(f[col] ?? '').length)) + 2)
+    }));
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, (limpio || 'Inventario').slice(0, 31));
     XLSX.writeFile(libro, `Inventario_${limpio || 'marca'}.xlsx`);
